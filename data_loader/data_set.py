@@ -6,6 +6,7 @@ uniform_lbp = [0, 1, 2, 3, 4, 6, 7, 8, 12, 14, 15, 16, 24, 28, 30, 31, 32, 48, 5
                241, 243, 247, 248, 249, 251, 252, 253, 254, 255]
 
 
+# 灰度值
 def intensity(path: str):
     img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     img = img.reshape([-1])
@@ -77,6 +78,7 @@ def get_hop_times(n):
     return count
 
 
+# uniform LBP
 def local_bp(path: str):
     img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     uni_lbp = []
