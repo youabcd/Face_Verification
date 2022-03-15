@@ -105,10 +105,10 @@ def cg_arm(pos, neg, a0, alpha, beta, a_shape=[200, 300]):
 # 余弦相似度度量学习
 def cs_ml(pos, neg, t, d, ap, k, repeat):
     """
-    :param pos: 正样本
+    :param pos: 正样本 size 样本对数量*2*图像维数
     :param neg: 负样本
     :param t: 验证样本
-    :param d: 子空间维数
+    :param d: dimension of the data after applying CSML
     :param ap: 预先设定的矩阵A
     :param k: 将验证样本拆分成k个子样本
     :param repeat: 寻找最佳A的最大次数
@@ -126,5 +126,5 @@ def cs_ml(pos, neg, t, d, ap, k, repeat):
                 min_cve = cve
                 a_next = a1
         a0 = a_next
-        if min_cve < 1e-4:
+        if min_cve < 1e-6:
             break
