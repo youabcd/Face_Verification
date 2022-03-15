@@ -7,11 +7,11 @@ def cosine_similarity(x, y, a):
     # x = [1,2,3,3,2]
     # y = [4,5,6,5,6]
     # a = [[1,2,3,1,2],[4,5,6,4,5]] m = 500 and d = 200
-    ax = np.dot(a, x)
-    ay = np.dot(a, y)
-    ax_norm = np.linalg.norm(ax)
-    ay_norm = np.linalg.norm(ay)
-    return np.dot(ax, ay) / (ax_norm * ay_norm)
+    ax = np.dot(a, x.T)
+    ay = np.dot(a, y.T)
+    ax_norm = np.linalg.norm(ax, axis=0)
+    ay_norm = np.linalg.norm(ay, axis=0)
+    return np.diagonal(np.dot(ax.T, ay)) / (ax_norm * ay_norm)
 
 
 # 余弦相似度梯度
@@ -29,12 +29,10 @@ def grad_cs(x, y, a):
 
 # 目标函数
 def obj_func(pos, neg, a, a0, alpha, beta):
-    pos_sum = 0
-    neg_sum = 0
-    for i in len(pos):
-        pos_sum = pos_sum + cosine_similarity(x=pos[i][0], y=pos[i][1], a=a)
-    for i in len(neg):
-        neg_sum = neg_sum + cosine_similarity(x=neg[i][0], y=neg[i][1], a=a)
+    pos_sum = cosine_similarity(x=pos[:, 0, :], y=pos[:, 1, :], a=a)
+    neg_sum = cosine_similarity(x=neg[:, 0, :], y=neg[:, 1, :], a=a)
+    pos_sum = pos_sum.sum()
+    neg_sum = neg_sum.sum()
     return pos_sum - (alpha * neg_sum) - (beta * np.square(np.linalg.norm(a - a0)))
 
 
@@ -42,9 +40,9 @@ def obj_func(pos, neg, a, a0, alpha, beta):
 def grad_func(pos, neg, a, a0, alpha, beta):
     pos_sum = np.zeros(a0.shape)
     neg_sum = np.zeros(a0.shape)
-    for i in len(pos):
+    for i in range(len(pos)):
         pos_sum = pos_sum + grad_cs(x=pos[i][0], y=pos[i][1], a=a)
-    for i in len(neg):
+    for i in range(len(neg)):
         neg_sum = neg_sum + grad_cs(x=neg[i][0], y=neg[i][1], a=a)
     return pos_sum - (alpha * neg_sum) - (2 * beta * (a - a0))
 
@@ -61,8 +59,8 @@ def cg(pos, neg, a0, alpha, beta):
 
 
 # 采用Armijo准测的共轭梯度算法 传入a0为一维数组:shape=[n,]
-def cg_arm(pos, neg, a0, alpha, beta, a_shape=[200, 300]):
-    max_k = 5000
+def cg_arm(pos, neg, a0, alpha, beta, a_shape):
+    max_k = 1
     rho = .6
     sigma = .4
     k = 0
@@ -117,14 +115,23 @@ def cs_ml(pos, neg, t, d, ap, k, repeat):
     a0 = ap
     a_next = ap
     alpha = len(pos) / len(neg)
+    best_beta = 0
+    min_cve_s = []
+    best_theta = []
     for i in range(repeat):
         min_cve = np.finfo(np.float32).max
         for beta in np.arange(0.5, 5, 0.1):
             a1 = cg_arm(pos=pos, neg=neg, a0=a0.reshape(-1), alpha=alpha, beta=beta, a_shape=a0.shape)
-            cve = compute_error(t=t, a=a1, k=k)
+            cve, pri_theta = compute_error(t=t.copy(), a=a1, k=k)
+            print("beta: ", beta, " cve: ", cve)
             if cve < min_cve:
                 min_cve = cve
                 a_next = a1
+                best_beta = beta
+                best_theta.append(pri_theta)
+        print("i: ", i, " min_cve: ", min_cve, " beta: ", best_beta)
+        min_cve_s.append(min_cve)
         a0 = a_next
-        if min_cve < 1e-6:
+        if min_cve < 22:
             break
+    return a0, np.array(min_cve_s), np.array(best_theta)

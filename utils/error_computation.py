@@ -12,15 +12,35 @@ def cs(data):
     return ans
 
 
+# 余弦相似度
+def cosine_similarity(x, y, a):
+    # x = [1,2,3,3,2]
+    # y = [4,5,6,5,6]
+    # a = [[1,2,3,1,2],[4,5,6,4,5]] m = 500 and d = 200
+    ax = np.dot(a, x.T)
+    ay = np.dot(a, y.T)
+    ax_norm = np.linalg.norm(ax, axis=0)
+    ay_norm = np.linalg.norm(ay, axis=0)
+    return np.diagonal(np.dot(ax.T, ay)) / (ax_norm * ay_norm)
+
+
 def compute_error(t, a, k):
-    for p in t:
-        p[0] = np.dot(p[0], a)
-        p[1] = np.dot(p[1], a)
+    """
+    :param t: t = [[img1, img2, 1(same)], [img3, img4, 0(twins)]]
+    :param a:
+    :param k:
+    :return: mean error
+    """
+    # for p in t:
+    #     p[0] = np.dot(a, p[0])
+    #     p[1] = np.dot(a, p[1])
+    cs_sm = cosine_similarity(t[:, 0], t[:, 1], a)
     total_error = 0
+    total_theta = 0
     t_split = np.array_split(t, k)
-    cos_sim = []
-    for i in range(k):
-        cos_sim.append(cs(t_split[i]))
+    cos_sim = np.array_split(cs_sm, k)
+    # for i in range(k):
+    #     cos_sim.append(cs(t_split[i]))
     for i in range(k):
         pri_theta = 1.
         max_cnt = 0
@@ -36,11 +56,10 @@ def compute_error(t, a, k):
             if cnt > max_cnt:
                 max_cnt = cnt
                 pri_theta = theta
-        print(pri_theta, max_cnt)
+        total_theta = total_theta + pri_theta
         for sub in range(len(t_split[i])):
-            if (cos_sim[i][sub] <= pri_theta and t_split[j][sub][2] == 1) or (
-                    cos_sim[j][sub] > pri_theta and t_split[j][sub][2] == 0):
+            if (cos_sim[i][sub] <= pri_theta and t_split[i][sub][2] == 1) or (
+                    cos_sim[i][sub] > pri_theta and t_split[i][sub][2] == 0):
                 test_error += 1
-        print(test_error)
         total_error = total_error + test_error
-    return total_error / k
+    return total_error / k, total_theta / k
