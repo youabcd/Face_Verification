@@ -1,5 +1,7 @@
 import numpy as np
 from utils.error_computation import compute_error
+import time
+import scipy.optimize as optimize
 
 
 # 余弦相似度
@@ -27,6 +29,49 @@ def grad_cs(x, y, a):
     return grad_u / va - (ua / np.square(va)) * grad_v
 
 
+# def grad_cs_pal(x, y, a):
+#     ax = np.dot(a, x.T)
+#     ay = np.dot(a, y.T)
+#     ax_norm = np.linalg.norm(ax, axis=0)
+#     ay_norm = np.linalg.norm(ay, axis=0)
+#     ua = np.diagonal(np.dot(ax.T, ay))
+#     va = ax_norm * ay_norm
+#     a1 = a.reshape((1, a.shape[0], a.shape[1]))
+#     xy = np.diagonal(x @ y.T)
+#     grad_u_va = np.tile(a1, (x.shape[0], 1, 1)) * np.tile((2 * xy / va).reshape((-1, 1, 1)),
+#                                                           (1, a.shape[0], a.shape[1]))
+#     grad_v = np.tile((ay_norm / ax_norm).reshape((-1, 1, 1)), (1, a.shape[0], a.shape[1])) * np.einsum('ij, jk->jik',
+#                                                                                                        ax, x) - np.tile(
+#         (ax_norm / ay_norm).reshape((-1, 1, 1)), (1, a.shape[0], a.shape[1])) * np.einsum('ij, jk->jik', ay, y)
+#     return grad_u_va - np.tile((ua / np.square(va)).reshape((-1, 1, 1)), (1, a.shape[0], a.shape[1])) * grad_v
+
+
+def grad_cs_pal(x, y, a):
+    ax = np.einsum('ij, kj->ik', a, x)
+    ay = np.einsum('ij, kj->ik', a, y)
+    ax_norm = np.linalg.norm(ax, axis=0)
+    ay_norm = np.linalg.norm(ay, axis=0)
+    ua = np.einsum('ij,ij->j', ax, ay)
+    va = ax_norm * ay_norm
+    a1 = a.reshape((1, a.shape[0], a.shape[1]))
+    xy = np.einsum('ij,ij->i', x, y)
+    grad_u_va = a1 * (2 * xy / va).reshape([-1, 1, 1])
+    t1_time = time.time()
+    test1 = np.einsum('ij, jk->jik', ax, x)
+    test2 = ((ay_norm / ax_norm) * (ua / np.square(va))).reshape((-1, 1, 1))
+    test3 = test1 * test2
+    time1 = time.time()
+    print("test1: ", time1 - t1_time)
+    test4 = ((ay_norm / ax_norm) * (ua / np.square(va))).reshape((-1, 1, 1)) * np.einsum('ij, jk->jik', ax, x)
+    t2_time = time.time()
+    print("test2: ", t2_time - time1)
+    grad_v_ua = ((ay_norm / ax_norm) * (ua / np.square(va))).reshape((-1, 1, 1)) * np.einsum('ij, jk->jik', ax, x) - (
+            (ax_norm / ay_norm) * (ua / np.square(va))).reshape((-1, 1, 1)) * np.einsum('ij, jk->jik', ay, y)
+    time2 = time.time()
+    print("grad_v: ", time2 - time1)
+    return grad_u_va - grad_v_ua
+
+
 # 目标函数
 def obj_func(pos, neg, a, a0, alpha, beta):
     pos_sum = cosine_similarity(x=pos[:, 0, :], y=pos[:, 1, :], a=a)
@@ -41,10 +86,20 @@ def grad_func(pos, neg, a, a0, alpha, beta):
     pos_sum = np.zeros(a0.shape)
     neg_sum = np.zeros(a0.shape)
     for i in range(len(pos)):
+        # time1 = time.time()
         pos_sum = pos_sum + grad_cs(x=pos[i][0], y=pos[i][1], a=a)
+        # print("one: ", time.time() - time1)
     for i in range(len(neg)):
         neg_sum = neg_sum + grad_cs(x=neg[i][0], y=neg[i][1], a=a)
     return pos_sum - (alpha * neg_sum) - (2 * beta * (a - a0))
+
+
+# def grad_func(pos, neg, a, a0, alpha, beta):
+#     pos_all = grad_cs_pal(x=pos[:, 0, :], y=pos[:, 1, :], a=a)
+#     neg_all = grad_cs_pal(x=neg[:, 0, :], y=neg[:, 1, :], a=a)
+#     pos_sum = np.sum(pos_all, axis=0)
+#     neg_sum = np.sum(neg_all, axis=0)
+#     return pos_sum - (alpha * neg_sum) - (2 * beta * (a - a0))
 
 
 # 共轭梯度算法
@@ -60,18 +115,24 @@ def cg(pos, neg, a0, alpha, beta):
 
 # 采用Armijo准测的共轭梯度算法 传入a0为一维数组:shape=[n,]
 def cg_arm(pos, neg, a0, alpha, beta, a_shape):
-    max_k = 1
+    max_k = 1000
     rho = .6
     sigma = .4
     k = 0
     epsilon = 1e-4
     n = len(a0)
     a = a0
+    time1 = time.time()
     g0 = grad_func(pos=pos, neg=neg, a=a.reshape(a_shape), a0=a0.reshape(a_shape), alpha=alpha, beta=beta)
+    time2 = time.time()
+    print("g0 grad: ", time2 - time1)
     g0 = g0.reshape(-1)
     d0 = -g0
     while k < max_k:
+        # time3 = time.time()
         g = grad_func(pos=pos, neg=neg, a=a.reshape(a_shape), a0=a0.reshape(a_shape), alpha=alpha, beta=beta)
+        # time4 = time.time()
+        # print("g grad: ", time4 - time3)
         g = g.reshape(-1)
         item = k % n
         if item == 0:
@@ -86,6 +147,7 @@ def cg_arm(pos, neg, a0, alpha, beta, a_shape):
             break
         m = 0
         mk = 0
+        # time5 = time.time()
         while m < 20:
             if obj_func(pos=pos, neg=neg, a=(a + rho ** m * d).reshape(a_shape), a0=a0.reshape(a_shape), alpha=alpha,
                         beta=beta) > obj_func(pos=pos, neg=neg, a=a.reshape(a_shape), a0=a0.reshape(a_shape),
@@ -93,6 +155,8 @@ def cg_arm(pos, neg, a0, alpha, beta, a_shape):
                 mk = m
                 break
             m += 1
+        # time6 = time.time()
+        # print("obj_func: ", time6 - time5)
         a = a + rho ** mk * d
         g0 = g
         d0 = d
@@ -120,9 +184,15 @@ def cs_ml(pos, neg, t, d, ap, k, repeat):
     best_theta = []
     for i in range(repeat):
         min_cve = np.finfo(np.float32).max
-        for beta in np.arange(0.5, 5, 0.1):
+        for beta in np.arange(0.5, 1.0, 0.1):
+            # time_cg = time.time()
             a1 = cg_arm(pos=pos, neg=neg, a0=a0.reshape(-1), alpha=alpha, beta=beta, a_shape=a0.shape)
+            # optimize.fmin_cg()
+            # time_cg_end = time.time()
+            # print("cg: ", time_cg_end - time_cg)
             cve, pri_theta = compute_error(t=t.copy(), a=a1, k=k)
+            # time_err = time.time()
+            # print("compute error: ", time_err - time_cg_end)
             print("beta: ", beta, " cve: ", cve)
             if cve < min_cve:
                 min_cve = cve

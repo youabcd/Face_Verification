@@ -24,14 +24,18 @@ class Trainer(object):
     def train(self):
         a0, min_cve_s, best_theta = cs_ml(pos=self.pos, neg=self.neg, t=self.t, d=self.d, ap=self.ap, k=self.k,
                                           repeat=self.max_repeat)
-        print(min_cve_s)
-        print(best_theta)
-        print(a0)
+        print("finish training")
+        parameter = dict()
+        parameter['min_cve_s'] = min_cve_s
+        parameter['best_theta'] = best_theta
+        parameter['a0'] = a0
         np.save(self.save_path + 'experiment/a0', a0)
+        np.savez_compressed(self.save_path + 'experiment/parameter', parameter=parameter)
+        print("save parameters. end.")
 
 
 if __name__ == '__main__':
     config_path = 'config/train_config.yml'
-    config = load_config(config_path)
+    config = load_config(config_path, if_remote=False)
     trainer = Trainer(config)
     trainer.train()

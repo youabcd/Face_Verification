@@ -14,9 +14,8 @@ def cs(data):
 
 # 余弦相似度
 def cosine_similarity(x, y, a):
-    # x = [1,2,3,3,2]
-    # y = [4,5,6,5,6]
-    # a = [[1,2,3,1,2],[4,5,6,4,5]] m = 500 and d = 200
+    x = np.array(x.tolist())
+    y = np.array(y.tolist())
     ax = np.dot(a, x.T)
     ay = np.dot(a, y.T)
     ax_norm = np.linalg.norm(ax, axis=0)
