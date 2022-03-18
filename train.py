@@ -6,8 +6,9 @@ import numpy as np
 
 
 class Trainer(object):
-    def __init__(self, cfg):
+    def __init__(self, cfg, if_remote):
         self.cfg = cfg
+        self.if_remote = if_remote
         self.d = cfg['d']
         self.k = cfg['k']
         self.max_repeat = cfg['max_repeat']
@@ -22,20 +23,26 @@ class Trainer(object):
             img = cfg['image_path']
 
     def train(self):
-        a0, min_cve_s, best_theta = cs_ml(pos=self.pos, neg=self.neg, t=self.t, d=self.d, ap=self.ap, k=self.k,
-                                          repeat=self.max_repeat)
+        a0_s, min_cve_s, best_theta, best_beta = cs_ml(pos=self.pos, neg=self.neg, t=self.t, d=self.d, ap=self.ap,
+                                                       k=self.k, repeat=self.max_repeat)
         print("finish training")
         parameter = dict()
         parameter['min_cve_s'] = min_cve_s
         parameter['best_theta'] = best_theta
-        parameter['a0'] = a0
-        np.save(self.save_path + 'experiment/a0', a0)
-        np.savez_compressed(self.save_path + 'experiment/parameter', parameter=parameter)
+        parameter['best_beta'] = best_beta
+        parameter['a0_s'] = a0_s
+        if self.if_remote is True:
+            # np.save(self.save_path + 'experiment/a0', a0)
+            np.savez_compressed(self.save_path + 'experiment/parameter', parameter=parameter)
+        else:
+            # np.save(self.save_path + 'experiment\\a0', a0)
+            np.savez_compressed(self.save_path + 'experiment\\parameter', parameter=parameter)
         print("save parameters. end.")
 
 
 if __name__ == '__main__':
     config_path = 'config/train_config.yml'
-    config = load_config(config_path, if_remote=False)
-    trainer = Trainer(config)
+    if_remote = False
+    config = load_config(config_path, if_remote=if_remote)
+    trainer = Trainer(config, if_remote)
     trainer.train()

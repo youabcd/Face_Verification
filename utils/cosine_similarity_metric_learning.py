@@ -73,16 +73,18 @@ def grad_cs_pal(x, y, a):
 
 
 # 目标函数
-def obj_func(pos, neg, a, a0, alpha, beta):
+def obj_func(a, pos, neg, a0, alpha, beta):
+    a = a.reshape((200, 400))
     pos_sum = cosine_similarity(x=pos[:, 0, :], y=pos[:, 1, :], a=a)
     neg_sum = cosine_similarity(x=neg[:, 0, :], y=neg[:, 1, :], a=a)
     pos_sum = pos_sum.sum()
     neg_sum = neg_sum.sum()
-    return pos_sum - (alpha * neg_sum) - (beta * np.square(np.linalg.norm(a - a0)))
+    return -(pos_sum - (alpha * neg_sum) - (beta * np.square(np.linalg.norm(a - a0))))
 
 
 # 目标函数梯度
-def grad_func(pos, neg, a, a0, alpha, beta):
+def grad_func(a, pos, neg, a0, alpha, beta):
+    a = a.reshape((200, 400))
     pos_sum = np.zeros(a0.shape)
     neg_sum = np.zeros(a0.shape)
     for i in range(len(pos)):
@@ -91,7 +93,7 @@ def grad_func(pos, neg, a, a0, alpha, beta):
         # print("one: ", time.time() - time1)
     for i in range(len(neg)):
         neg_sum = neg_sum + grad_cs(x=neg[i][0], y=neg[i][1], a=a)
-    return pos_sum - (alpha * neg_sum) - (2 * beta * (a - a0))
+    return -((pos_sum - (alpha * neg_sum) - (2 * beta * (a - a0))).reshape(-1))
 
 
 # def grad_func(pos, neg, a, a0, alpha, beta):
@@ -113,27 +115,22 @@ def cg(pos, neg, a0, alpha, beta):
         step_alpha = np.linalg.norm(r0.reshape(-1))
 
 
-# 采用Armijo准测的共轭梯度算法 传入a0为一维数组:shape=[n,]
+# 采用Armijo准测的共轭梯度算法 传入a0为2维数组:shape=[d,m]
 def cg_arm(pos, neg, a0, alpha, beta, a_shape):
     max_k = 1000
     rho = .6
     sigma = .4
     k = 0
     epsilon = 1e-4
-    n = len(a0)
-    a = a0
+    a = a0.reshape(-1)
+    n = len(a)
     time1 = time.time()
-    g0 = grad_func(pos=pos, neg=neg, a=a.reshape(a_shape), a0=a0.reshape(a_shape), alpha=alpha, beta=beta)
+    g0 = grad_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
     time2 = time.time()
     print("g0 grad: ", time2 - time1)
-    g0 = g0.reshape(-1)
     d0 = -g0
     while k < max_k:
-        # time3 = time.time()
-        g = grad_func(pos=pos, neg=neg, a=a.reshape(a_shape), a0=a0.reshape(a_shape), alpha=alpha, beta=beta)
-        # time4 = time.time()
-        # print("g grad: ", time4 - time3)
-        g = g.reshape(-1)
+        g = grad_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
         item = k % n
         if item == 0:
             d = -g
@@ -143,20 +140,20 @@ def cg_arm(pos, neg, a0, alpha, beta, a_shape):
             gd = np.dot(g, d)
             if gd >= 0:
                 d = -g
+        print("g_norm", np.linalg.norm(g))
         if np.linalg.norm(g) < epsilon:
             break
         m = 0
         mk = 0
-        # time5 = time.time()
         while m < 20:
-            if obj_func(pos=pos, neg=neg, a=(a + rho ** m * d).reshape(a_shape), a0=a0.reshape(a_shape), alpha=alpha,
-                        beta=beta) > obj_func(pos=pos, neg=neg, a=a.reshape(a_shape), a0=a0.reshape(a_shape),
-                                              alpha=alpha, beta=beta) + sigma * rho ** m * g.T @ d:
+            if obj_func(a=a + rho ** m * d, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta) < obj_func(a=a, pos=pos,
+                                                                                                        neg=neg,
+                                                                                                        a0=a0,
+                                                                                                        alpha=alpha,
+                                                                                                        beta=beta) + sigma * rho ** m * g.T @ d:
                 mk = m
                 break
             m += 1
-        # time6 = time.time()
-        # print("obj_func: ", time6 - time5)
         a = a + rho ** mk * d
         g0 = g
         d0 = d
@@ -179,29 +176,37 @@ def cs_ml(pos, neg, t, d, ap, k, repeat):
     a0 = ap
     a_next = ap
     alpha = len(pos) / len(neg)
-    best_beta = 0
+    best_beta = []
+    beta_next = 0
     min_cve_s = []
     best_theta = []
+    theta_next = 1
+    best_a = []
     for i in range(repeat):
         min_cve = np.finfo(np.float32).max
-        for beta in np.arange(0.5, 1.0, 0.1):
-            # time_cg = time.time()
-            a1 = cg_arm(pos=pos, neg=neg, a0=a0.reshape(-1), alpha=alpha, beta=beta, a_shape=a0.shape)
-            # optimize.fmin_cg()
-            # time_cg_end = time.time()
-            # print("cg: ", time_cg_end - time_cg)
+        for beta in np.arange(0.1, 1.0, 0.1):
+            time_cg = time.time()
+            a1 = cg_arm(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
+            # a1 = (
+            #     optimize.fmin_cg(obj_func, a0.reshape(-1), fprime=grad_func, args=(pos, neg, a0, alpha, beta))).reshape(
+            #     a0.shape)
             cve, pri_theta = compute_error(t=t.copy(), a=a1, k=k)
             # time_err = time.time()
             # print("compute error: ", time_err - time_cg_end)
+            time_cg_end = time.time()
+            print("finish a epoch: ", time_cg_end - time_cg)
             print("beta: ", beta, " cve: ", cve)
             if cve < min_cve:
                 min_cve = cve
                 a_next = a1
-                best_beta = beta
-                best_theta.append(pri_theta)
+                beta_next = beta
+                theta_next = pri_theta
         print("i: ", i, " min_cve: ", min_cve, " beta: ", best_beta)
         min_cve_s.append(min_cve)
+        best_beta.append(beta_next)
+        best_theta.append(theta_next)
+        best_a.append(a_next)
         a0 = a_next
         if min_cve < 22:
             break
-    return a0, np.array(min_cve_s), np.array(best_theta)
+    return np.array(best_a), np.array(min_cve_s), np.array(best_theta), np.array(best_beta)
