@@ -36,7 +36,7 @@ class Trainer(object):
             np.savez_compressed(self.save_path + 'experiment/parameter', parameter=parameter)
         else:
             # np.save(self.save_path + 'experiment\\a0', a0)
-            np.savez_compressed(self.save_path + 'experiment\\parameter', parameter=parameter)
+            np.savez_compressed(self.save_path + 'experiment\\parameter_200_80', parameter=parameter)
         print("save parameters. end.")
 
 

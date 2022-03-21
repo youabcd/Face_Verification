@@ -74,7 +74,7 @@ def grad_cs_pal(x, y, a):
 
 # 目标函数
 def obj_func(a, pos, neg, a0, alpha, beta):
-    a = a.reshape((200, 400))
+    a = a.reshape(a0.shape)
     pos_sum = cosine_similarity(x=pos[:, 0, :], y=pos[:, 1, :], a=a)
     neg_sum = cosine_similarity(x=neg[:, 0, :], y=neg[:, 1, :], a=a)
     pos_sum = pos_sum.sum()
@@ -84,7 +84,7 @@ def obj_func(a, pos, neg, a0, alpha, beta):
 
 # 目标函数梯度
 def grad_func(a, pos, neg, a0, alpha, beta):
-    a = a.reshape((200, 400))
+    a = a.reshape(a0.shape)
     pos_sum = np.zeros(a0.shape)
     neg_sum = np.zeros(a0.shape)
     for i in range(len(pos)):
@@ -124,10 +124,10 @@ def cg_arm(pos, neg, a0, alpha, beta, a_shape):
     epsilon = 1e-4
     a = a0.reshape(-1)
     n = len(a)
-    time1 = time.time()
+    # time1 = time.time()
     g0 = grad_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
-    time2 = time.time()
-    print("g0 grad: ", time2 - time1)
+    # time2 = time.time()
+    # print("g0 grad: ", time2 - time1)
     d0 = -g0
     while k < max_k:
         g = grad_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
@@ -140,7 +140,7 @@ def cg_arm(pos, neg, a0, alpha, beta, a_shape):
             gd = np.dot(g, d)
             if gd >= 0:
                 d = -g
-        print("g_norm", np.linalg.norm(g))
+        # print("g_norm", np.linalg.norm(g))
         if np.linalg.norm(g) < epsilon:
             break
         m = 0
@@ -207,6 +207,6 @@ def cs_ml(pos, neg, t, d, ap, k, repeat):
         best_theta.append(theta_next)
         best_a.append(a_next)
         a0 = a_next
-        if min_cve < 22:
+        if min_cve < 25:
             break
     return np.array(best_a), np.array(min_cve_s), np.array(best_theta), np.array(best_beta)
