@@ -5,8 +5,8 @@ image_path: '/home/chenzhentao/Face_Verification/'
 if_regenerate: False  # 是否重新生成数据
 #save_path: '/home/chenzhentao/Face_Verification/'
 save_path: 'E:\Face_Verification\'
-d: 40  # dimension of the data after applying CSML
-pca_dim: 100  # pca降维至几维
+d: 20  # dimension of the data after applying CSML
+pca_dim: 50  # pca降维至几维
 ap: 'PCA'  # a0的选择 'WPCA' 'PCA' 'RP' 三种
 k: 10  # 验证数据集拆分成多少个子样本
 max_repeat: 8  # 寻找最佳矩阵A时最多循环多少次
