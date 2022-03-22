@@ -79,7 +79,7 @@ def obj_func(a, pos, neg, a0, alpha, beta):
     neg_sum = cosine_similarity(x=neg[:, 0, :], y=neg[:, 1, :], a=a)
     pos_sum = pos_sum.sum()
     neg_sum = neg_sum.sum()
-    return -(pos_sum - (alpha * neg_sum) - (beta * np.square(np.linalg.norm(a - a0))))
+    return pos_sum - (alpha * neg_sum) - (beta * np.square(np.linalg.norm(a - a0)))
 
 
 # 目标函数梯度
@@ -93,7 +93,7 @@ def grad_func(a, pos, neg, a0, alpha, beta):
         # print("one: ", time.time() - time1)
     for i in range(len(neg)):
         neg_sum = neg_sum + grad_cs(x=neg[i][0], y=neg[i][1], a=a)
-    return -((pos_sum - (alpha * neg_sum) - (2 * beta * (a - a0))).reshape(-1))
+    return (pos_sum - (alpha * neg_sum) - (2 * beta * (a - a0))).reshape(-1)
 
 
 # def grad_func(pos, neg, a, a0, alpha, beta):
@@ -108,17 +108,18 @@ def grad_func(a, pos, neg, a0, alpha, beta):
 def lower_fast(pos, neg, a0, alpha, beta, a_shape):
     max_k = 1000
     k = 0
-    step = 0.1
+    step = 0.01
     epsilon = 1e-4
     at = a0
     while True:
         # while k < max_k:
         g = grad_func(a=at.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
-        a = at + (step * (-g)).reshape(a_shape)
+        a = at + (step * g).reshape(a_shape)
         # step = step * 0.95
         # print(k, " g_norm", np.linalg.norm(g))
         # if np.linalg.norm(g) < epsilon:
         #     break
+        print("func: ", obj_func(a=a.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
         distance = np.linalg.norm((a - at).diagonal())
         print("distance: ", distance)
         if distance < epsilon:
@@ -153,6 +154,7 @@ def cg_arm(pos, neg, a0, alpha, beta, a_shape):
     # time2 = time.time()
     # print("g0 grad: ", time2 - time1)
     d0 = -g0
+    print("func: ", obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
     while True:
         # while k < max_k:
         g = grad_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
@@ -180,6 +182,7 @@ def cg_arm(pos, neg, a0, alpha, beta, a_shape):
                 break
             m += 1
         a = a + rho ** mk * d
+        print("func: ", obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
         g0 = g
         d0 = d
         k += 1
@@ -211,8 +214,8 @@ def cs_ml(pos, neg, t, d, ap, k, repeat):
         min_cve = np.finfo(np.float32).max
         for beta in np.arange(0.1, 0.2, 0.1):
             time_cg = time.time()
-            # a1 = lower_fast(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
-            a1 = cg_arm(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
+            a1 = lower_fast(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
+            # a1 = cg_arm(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
             # a1 = (
             #     optimize.fmin_cg(obj_func, a0.reshape(-1), fprime=grad_func, args=(pos, neg, a0, alpha, beta))).reshape(
             #     a0.shape)
