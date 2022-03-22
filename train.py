@@ -14,7 +14,7 @@ class Trainer(object):
         self.max_repeat = cfg['max_repeat']
         self.save_path = cfg['save_path']
         if cfg['if_regenerate'] is False:
-            pos, neg, t = change_data_1(cfg['data_path'], cfg['pca_dim'])
+            pos, neg, t = change_data(cfg['data_path'], cfg['pca_dim'])
             self.pos = pos
             self.neg = neg
             self.t = t
