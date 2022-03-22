@@ -121,7 +121,7 @@ def cg_arm(pos, neg, a0, alpha, beta, a_shape):
     rho = .6
     sigma = .4
     k = 0
-    epsilon = 1e-4
+    epsilon = 1e-6
     a = a0.reshape(-1)
     n = len(a)
     # time1 = time.time()
