@@ -1,5 +1,5 @@
 from utils.cosine_similarity_metric_learning import cs_ml
-from utils.change_data import change_data
+from utils.change_data import change_data, change_data_1
 from utils.load_config import load_config
 from utils.get_ap import get_ap
 import numpy as np
@@ -14,7 +14,7 @@ class Trainer(object):
         self.max_repeat = cfg['max_repeat']
         self.save_path = cfg['save_path']
         if cfg['if_regenerate'] is False:
-            pos, neg, t = change_data(cfg['data_path'], cfg['pca_dim'])
+            pos, neg, t = change_data_1(cfg['data_path'], cfg['pca_dim'])
             self.pos = pos
             self.neg = neg
             self.t = t
@@ -37,8 +37,8 @@ class Trainer(object):
         else:
             # np.save(self.save_path + 'experiment\\a0', a0)
             np.savez_compressed(
-                self.save_path + 'experiment\\parameter_' + str(self.cfg['pca_dim']) + '_' + str(self.cfg['d']),
-                parameter=parameter)
+                self.save_path + 'experiment\\parameter_' + str(self.cfg['pca_dim']) + '_' + str(
+                    self.cfg['d']) + '_01_cg_test', parameter=parameter)
         print("save parameters. end.")
 
 

@@ -104,6 +104,30 @@ def grad_func(a, pos, neg, a0, alpha, beta):
 #     return pos_sum - (alpha * neg_sum) - (2 * beta * (a - a0))
 
 
+# 最速下降法
+def lower_fast(pos, neg, a0, alpha, beta, a_shape):
+    max_k = 1000
+    k = 0
+    step = 0.1
+    epsilon = 1e-4
+    at = a0
+    while True:
+        # while k < max_k:
+        g = grad_func(a=at.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+        a = at + (step * (-g)).reshape(a_shape)
+        # step = step * 0.95
+        # print(k, " g_norm", np.linalg.norm(g))
+        # if np.linalg.norm(g) < epsilon:
+        #     break
+        distance = np.linalg.norm((a - at).diagonal())
+        print("distance: ", distance)
+        if distance < epsilon:
+            break
+        at = a
+        k += 1
+    return a
+
+
 # 共轭梯度算法
 def cg(pos, neg, a0, alpha, beta):
     max_iter = 5000
@@ -129,7 +153,8 @@ def cg_arm(pos, neg, a0, alpha, beta, a_shape):
     # time2 = time.time()
     # print("g0 grad: ", time2 - time1)
     d0 = -g0
-    while k < max_k:
+    while True:
+        # while k < max_k:
         g = grad_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
         item = k % n
         if item == 0:
@@ -140,7 +165,7 @@ def cg_arm(pos, neg, a0, alpha, beta, a_shape):
             gd = np.dot(g, d)
             if gd >= 0:
                 d = -g
-        # print("g_norm", np.linalg.norm(g))
+        print(k, " g_norm", np.linalg.norm(g))
         if np.linalg.norm(g) < epsilon:
             break
         m = 0
@@ -184,8 +209,9 @@ def cs_ml(pos, neg, t, d, ap, k, repeat):
     best_a = []
     for i in range(repeat):
         min_cve = np.finfo(np.float32).max
-        for beta in np.arange(0.1, 1.0, 0.1):
+        for beta in np.arange(0.1, 0.2, 0.1):
             time_cg = time.time()
+            # a1 = lower_fast(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
             a1 = cg_arm(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
             # a1 = (
             #     optimize.fmin_cg(obj_func, a0.reshape(-1), fprime=grad_func, args=(pos, neg, a0, alpha, beta))).reshape(
