@@ -14,27 +14,28 @@ class PCA(object):
         means = x_t.mean(axis=1)
         means = means.reshape((-1, 1))
         x_t_c = x_t - means
-        x_cov = np.cov(x_t_c)
+        x_cov = np.cov(x_t_c)  # 协方差矩阵
         return x_cov
 
     def get_feature(self):
         x_cov = self.cov()
-        a, b = np.linalg.eig(x_cov)
+        a, b = np.linalg.eig(x_cov)  # 计算特征值和特征向量
         a = np.real(a)
         b = np.real(b)
         m = a.shape[0]
         c = np.hstack((a.reshape((m, 1)), b))
         sort = np.argsort(c[:, 0])
-        return c[sort[::-1]]
+        return c[sort[::-1]]  # 按特征值从大到小排序
 
     def reduce_dimension(self):
         c_df_sort = self.get_feature()
         p = c_df_sort[:self.n_components, 1:]
         y = np.dot(p, np.transpose(self.x))
-        return np.transpose(y)
+        return np.transpose(y)  # 返回降维后的结果
 
 
 if __name__ == '__main__':
+    # 例子 10个样本，每个样本3个特征
     x = [[-6.1, -9.2, 9.2],
          [-1.1, 21.8, -6.8],
          [6.9, -3.2, 10.2],

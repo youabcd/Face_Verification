@@ -45,7 +45,7 @@ class Trainer(object):
 
 if __name__ == '__main__':
     config_path = 'config/train_config.yml'
-    if_remote = True
+    if_remote = False
     config = load_config(config_path, if_remote=if_remote)
     trainer = Trainer(config, if_remote)
     trainer.train()
