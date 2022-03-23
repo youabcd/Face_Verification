@@ -5,6 +5,9 @@ def change_data(path, dim):
     pca = np.load(path, allow_pickle=True)['pca'].item()
     data = pca['ux']
     data = np.transpose(data)
+    for j in range(data.shape[0]):
+        a = data[j]
+        data[j] = a / np.linalg.norm(a)
     pos = []
     neg = []
     t = []
@@ -23,6 +26,9 @@ def change_data(path, dim):
     pos = np.array(pos)
     neg = np.array(neg)
     t = np.array(t)
+    arr = np.array(range(t.shape[0]))
+    np.random.shuffle(arr)
+    t = t[arr, :]
     return pos, neg, t
 
 

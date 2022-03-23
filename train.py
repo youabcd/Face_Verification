@@ -24,7 +24,7 @@ class Trainer(object):
 
     def train(self):
         a0_s, min_cve_s, best_theta, best_beta = cs_ml(pos=self.pos, neg=self.neg, t=self.t, d=self.d, ap=self.ap,
-                                                       k=self.k, repeat=self.max_repeat)
+                                                       k=self.k, repeat=self.max_repeat, rho=self.cfg['rho'])
         print("finish training")
         parameter = dict()
         parameter['min_cve_s'] = min_cve_s
@@ -38,13 +38,17 @@ class Trainer(object):
             # np.save(self.save_path + 'experiment\\a0', a0)
             np.savez_compressed(
                 self.save_path + 'experiment\\parameter_' + str(self.cfg['pca_dim']) + '_' + str(
-                    self.cfg['d']) + '_01_cg_test', parameter=parameter)
+                    self.cfg['d']) + '_' + str(self.cfg['rho'])[2:], parameter=parameter)
         print("save parameters. end.")
 
 
 if __name__ == '__main__':
     config_path = 'config/train_config.yml'
-    if_remote = False
+    if_remote = True
     config = load_config(config_path, if_remote=if_remote)
     trainer = Trainer(config, if_remote)
     trainer.train()
+
+# czt up 0.005  down 0.6
+# czt1 up unknow  down 0.001
+# czt2 up 0.01  down

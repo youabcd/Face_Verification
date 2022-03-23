@@ -2,6 +2,8 @@ import numpy as np
 from utils.error_computation import compute_error
 import time
 import scipy.optimize as optimize
+from utils.change_data import change_data
+from utils.get_ap import get_ap
 
 
 # 余弦相似度
@@ -79,7 +81,8 @@ def obj_func(a, pos, neg, a0, alpha, beta):
     neg_sum = cosine_similarity(x=neg[:, 0, :], y=neg[:, 1, :], a=a)
     pos_sum = pos_sum.sum()
     neg_sum = neg_sum.sum()
-    return pos_sum - (alpha * neg_sum) - (beta * np.square(np.linalg.norm(a - a0)))
+    return -(pos_sum - (alpha * neg_sum) - (beta * np.square(np.linalg.norm(a - a0))))
+    # return -(pos_sum - (alpha * neg_sum))
 
 
 # 目标函数梯度
@@ -93,7 +96,8 @@ def grad_func(a, pos, neg, a0, alpha, beta):
         # print("one: ", time.time() - time1)
     for i in range(len(neg)):
         neg_sum = neg_sum + grad_cs(x=neg[i][0], y=neg[i][1], a=a)
-    return (pos_sum - (alpha * neg_sum) - (2 * beta * (a - a0))).reshape(-1)
+    return -((pos_sum - (alpha * neg_sum) - (2 * beta * (a - a0))).reshape(-1))
+    # return -((pos_sum - (alpha * neg_sum)).reshape(-1))
 
 
 # def grad_func(pos, neg, a, a0, alpha, beta):
@@ -105,55 +109,72 @@ def grad_func(a, pos, neg, a0, alpha, beta):
 
 
 # 最速下降法
-def lower_fast(pos, neg, a0, alpha, beta, a_shape):
+def lower_fast(pos, neg, t, a0, alpha, beta, a_shape):
+    min_func = 0
+    min_err = 91
+    min_k = 0
     max_k = 1000
     k = 0
     step = 0.01
-    epsilon = 1e-4
+    epsilon = 1e-6
     at = a0
-    while True:
-        # while k < max_k:
+    # while True:
+    while k < max_k:
         g = grad_func(a=at.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
-        a = at + (step * g).reshape(a_shape)
+        a = at + (step * (-g)).reshape(a_shape)
         # step = step * 0.95
-        # print(k, " g_norm", np.linalg.norm(g))
+        print(k, " g_norm", np.linalg.norm(g))
         # if np.linalg.norm(g) < epsilon:
         #     break
-        print("func: ", obj_func(a=a.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
+        func = obj_func(a=a.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+        if func < min_func:
+            min_func = func
+            min_k = k
+        print("func: ", func)
         distance = np.linalg.norm((a - at).diagonal())
         print("distance: ", distance)
+        err, _ = compute_error(t=t.copy(), a=a.reshape(a_shape), k=10)
+        if err < min_err:
+            min_err = err
+            min_k = k
+        print("err: ", err)
         if distance < epsilon:
             break
         at = a
         k += 1
+    print("min_func: ", min_func, " k: ", min_k)
+    print("min_err: ", min_err, " k: ", min_k)
     return a
 
 
 # 共轭梯度算法
-def cg(pos, neg, a0, alpha, beta):
-    max_iter = 5000
-    epsilon = 1e-4
-    a0_line = a0.reshape(-1)
-    r0 = grad_func(pos=pos, neg=neg, a=a0, a0=a0, alpha=alpha, beta=beta)
-    p0 = -r0
-    for i in range(max_iter):
-        step_alpha = np.linalg.norm(r0.reshape(-1))
+# def cg(pos, neg, a0, alpha, beta):
+#     max_iter = 5000
+#     epsilon = 1e-4
+#     a0_line = a0.reshape(-1)
+#     r0 = grad_func(pos=pos, neg=neg, a=a0, a0=a0, alpha=alpha, beta=beta)
+#     p0 = -r0
+#     for i in range(max_iter):
+#         step_alpha = np.linalg.norm(r0.reshape(-1))
 
 
 # 采用Armijo准测的共轭梯度算法 传入a0为2维数组:shape=[d,m]
-def cg_arm(pos, neg, a0, alpha, beta, a_shape):
-    max_k = 1000
-    rho = .6
+def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
+    min_func = 0
+    min_err = 91
+    min_k = 0
+    max_k = 529
+    rho = rho
+    print("rho: ", rho)
     sigma = .4
     k = 0
+    best_a = a0
     epsilon = 1e-6
     a = a0.reshape(-1)
     n = len(a)
-    # time1 = time.time()
     g0 = grad_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
-    # time2 = time.time()
-    # print("g0 grad: ", time2 - time1)
     d0 = -g0
+    # d0 = g0
     print("func: ", obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
     while True:
         # while k < max_k:
@@ -161,36 +182,52 @@ def cg_arm(pos, neg, a0, alpha, beta, a_shape):
         item = k % n
         if item == 0:
             d = -g
+            # d = g
         else:
             theta = np.linalg.norm(g) / np.linalg.norm(g0)
             d = -g + theta * d0
+            # d = g + theta * d0
             gd = np.dot(g, d)
             if gd >= 0:
                 d = -g
+            # if gd >= 0:
+            #     d = g
         print(k, " g_norm", np.linalg.norm(g))
         if np.linalg.norm(g) < epsilon:
             break
         m = 0
         mk = 0
         while m < 20:
-            if obj_func(a=a + rho ** m * d, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta) < obj_func(a=a, pos=pos,
-                                                                                                        neg=neg,
-                                                                                                        a0=a0,
-                                                                                                        alpha=alpha,
-                                                                                                        beta=beta) + sigma * rho ** m * g.T @ d:
+            if obj_func(a=a + rho ** m * d, pos=pos,
+                        neg=neg, a0=a0, alpha=alpha, beta=beta) < obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha,
+                                                                           beta=beta) + sigma * rho ** m * g.T @ d:
                 mk = m
                 break
             m += 1
         a = a + rho ** mk * d
-        print("func: ", obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
+        # func = obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+        # if func < min_func:
+        #     min_func = func
+        #     min_k = k
+        # print("func: ", func)
+        err, _ = compute_error(t=t.copy(), a=a.reshape(a_shape), k=10)
+        if err < min_err:
+            min_err = err
+            min_k = k
+            best_a = a
+        print("err: ", err)
         g0 = g
         d0 = d
         k += 1
-    return a.reshape(a_shape)
+    # print("min_func: ", min_func, " k: ", min_k)
+    print("min_err: ", min_err, " k: ", min_k)
+    print("rho: ", rho)
+    # return a.reshape(a_shape)
+    return best_a.reshape(a_shape)
 
 
 # 余弦相似度度量学习
-def cs_ml(pos, neg, t, d, ap, k, repeat):
+def cs_ml(pos, neg, t, d, ap, k, repeat, rho):
     """
     :param pos: 正样本 size 样本对数量*2*图像维数
     :param neg: 负样本
@@ -199,6 +236,7 @@ def cs_ml(pos, neg, t, d, ap, k, repeat):
     :param ap: 预先设定的矩阵A
     :param k: 将验证样本拆分成k个子样本
     :param repeat: 寻找最佳A的最大次数
+    :param rho
     :return: A_csml
     """
     a0 = ap
@@ -214,8 +252,8 @@ def cs_ml(pos, neg, t, d, ap, k, repeat):
         min_cve = np.finfo(np.float32).max
         for beta in np.arange(0.1, 0.2, 0.1):
             time_cg = time.time()
-            a1 = lower_fast(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
-            # a1 = cg_arm(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
+            # a1 = lower_fast(pos=pos, neg=neg, t=t, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
+            a1 = cg_arm(pos=pos, neg=neg, t=t, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape, rho=rho)
             # a1 = (
             #     optimize.fmin_cg(obj_func, a0.reshape(-1), fprime=grad_func, args=(pos, neg, a0, alpha, beta))).reshape(
             #     a0.shape)
@@ -230,12 +268,22 @@ def cs_ml(pos, neg, t, d, ap, k, repeat):
                 a_next = a1
                 beta_next = beta
                 theta_next = pri_theta
-        print("i: ", i, " min_cve: ", min_cve, " beta: ", best_beta)
         min_cve_s.append(min_cve)
         best_beta.append(beta_next)
         best_theta.append(theta_next)
         best_a.append(a_next)
         a0 = a_next
+        print("i: ", i, " min_cve_s: ", min_cve_s, " beta: ", best_beta)
         if min_cve < 25:
             break
     return np.array(best_a), np.array(min_cve_s), np.array(best_theta), np.array(best_beta)
+
+
+if __name__ == '__main__':
+    parameter = np.load('E:\Face_Verification\experiment\parameter_400_200.npz', allow_pickle=True)[
+        'parameter'].item()
+    idx = np.where(parameter['min_cve_s'] == np.min(parameter['min_cve_s']))
+    print("old error: ", np.min(parameter['min_cve_s']))
+    a = parameter['a0_s'][idx[0][0]]
+    pos, neg, t = change_data('E:\毕设\demo_code\data\LBP_r1_pca.npz', a.shape[1])
+    print(obj_func(a, pos, neg, get_ap('PCA', a.shape[0], a.shape[1]), 1, 0.1))

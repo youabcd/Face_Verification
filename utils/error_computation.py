@@ -57,16 +57,18 @@ def compute_error(t, a, k):
                 max_cnt = cnt
                 pri_theta = theta
         total_theta = total_theta + pri_theta
+        # print("pri theta: ", pri_theta)
         for sub in range(len(t_split[i])):
             if (cos_sim[i][sub] < pri_theta and t_split[i][sub][2] == 1) or (
                     cos_sim[i][sub] >= pri_theta and t_split[i][sub][2] == 0):
                 test_error += 1
+        # print("test error: ", test_error)
         total_error = total_error + test_error
     return total_error / k, total_theta / k
 
 
 if __name__ == '__main__':
-    parameter = np.load('E:\Face_Verification\experiment\parameter_200_100_01.npz', allow_pickle=True)[
+    parameter = np.load('E:\Face_Verification\experiment\parameter_200_100for_v.npz', allow_pickle=True)[
         'parameter'].item()
     idx = np.where(parameter['min_cve_s'] == np.min(parameter['min_cve_s']))
     print("old error: ", np.min(parameter['min_cve_s']))
