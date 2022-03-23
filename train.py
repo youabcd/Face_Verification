@@ -33,7 +33,8 @@ class Trainer(object):
         parameter['a0_s'] = a0_s
         if self.if_remote is True:
             # np.save(self.save_path + 'experiment/a0', a0)
-            np.savez_compressed(self.save_path + 'experiment/parameter', parameter=parameter)
+            np.savez_compressed(self.save_path + 'experiment/parameter_' + str(self.cfg['pca_dim']) + '_' + str(
+                    self.cfg['d']) + '_' + str(self.cfg['rho'])[2:], parameter=parameter)
         else:
             # np.save(self.save_path + 'experiment\\a0', a0)
             np.savez_compressed(
