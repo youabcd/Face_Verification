@@ -68,11 +68,26 @@ def compute_error(t, a, k):
 
 
 if __name__ == '__main__':
-    parameter = np.load('E:\Face_Verification\experiment\parameter_200_100for_v.npz', allow_pickle=True)[
+    parameter = np.load('E:\Face_Verification\experiment\\200_100\parameter_200_100_009.npz', allow_pickle=True)[
         'parameter'].item()
     idx = np.where(parameter['min_cve_s'] == np.min(parameter['min_cve_s']))
     print("old error: ", np.min(parameter['min_cve_s']))
     a = parameter['a0_s'][idx[0][0]]
-    pos, neg, t = change_data('E:\毕设\demo_code\data\LBP_r1_pca.npz', a.shape[1])
-    e, theta = compute_error(t.copy(), a, 10)
-    print("new error: ", e)
+    # pos, neg, t = change_data('E:\毕设\demo_code\data\LBP_r1_pca.npz', a.shape[1])
+    total_err = 0
+    max_err = 0
+    min_err = 91
+    size = 100
+    for i in range(size):
+        pos, neg, t = change_data('E:\毕设\demo_code\data\LBP_r1_pca.npz', a.shape[1])
+        e, theta = compute_error(t.copy(), a, 10)
+        print("err: ", e)
+        total_err = total_err + e
+        if e > max_err:
+            max_err = e
+        if e < min_err:
+            min_err = e
+    print("avg err: ", total_err / size)
+    print("max err: ", max_err)
+    print("min err: ", min_err)
+    print("ave: ", 1 - (total_err / size) / 91, " min: ", 1 - max_err / 91, " max: ", 1 - min_err / 91)

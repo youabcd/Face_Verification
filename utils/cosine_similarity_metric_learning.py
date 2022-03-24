@@ -163,9 +163,10 @@ def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
     min_func = 0
     min_err = 91
     min_k = 0
-    max_k = 529
+    max_k = 2001
     rho = rho
-    print("rho: ", rho)
+    # print("rho: ", rho)
+    print("a shape: ", a0.shape)
     sigma = .4
     k = 0
     best_a = a0
@@ -177,7 +178,7 @@ def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
     # d0 = g0
     print("func: ", obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
     while True:
-        # while k < max_k:
+    # while k < max_k:
         g = grad_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
         item = k % n
         if item == 0:
@@ -215,13 +216,23 @@ def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
             min_err = err
             min_k = k
             best_a = a
+            func = obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+            min_func = func
+            # print("func: ", func)
         print("err: ", err)
+        if k % 500 == 0:
+            # print("rho: ", rho)
+            print("a shape: ", a0.shape)
+            print("best err in 500: ", min_err)
+            print("best err k: ", min_k)
+            print("min_func: ", min_func)
         g0 = g
         d0 = d
         k += 1
-    # print("min_func: ", min_func, " k: ", min_k)
+    print("min_func: ", min_func, " k: ", min_k)
     print("min_err: ", min_err, " k: ", min_k)
-    print("rho: ", rho)
+    # print("rho: ", rho)
+    print("a shape: ", a0.shape)
     # return a.reshape(a_shape)
     return best_a.reshape(a_shape)
 

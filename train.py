@@ -33,8 +33,8 @@ class Trainer(object):
         parameter['a0_s'] = a0_s
         if self.if_remote is True:
             # np.save(self.save_path + 'experiment/a0', a0)
-            np.savez_compressed(self.save_path + 'experiment/parameter_' + str(self.cfg['pca_dim']) + '_' + str(
-                    self.cfg['d']) + '_' + str(self.cfg['rho'])[2:], parameter=parameter)
+            np.savez_compressed(self.save_path + 'experiment/009/parameter_' + str(self.cfg['pca_dim']) + '_' + str(
+                    self.cfg['d']), parameter=parameter)
         else:
             # np.save(self.save_path + 'experiment\\a0', a0)
             np.savez_compressed(
@@ -45,11 +45,12 @@ class Trainer(object):
 
 if __name__ == '__main__':
     config_path = 'config/train_config.yml'
-    if_remote = False
+    if_remote = True
     config = load_config(config_path, if_remote=if_remote)
     trainer = Trainer(config, if_remote)
     trainer.train()
 
-# czt up 0.005  down 0.6
-# czt1 up unknow  down 0.001
-# czt2 up 0.01  down
+# czt  up 200 now_best    down 160 now_best
+# czt1 up 120 now_best    down 60 now_best
+# czt2 up 40 now_best    down 180 now_best
+# local 140 now_best
