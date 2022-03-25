@@ -38,8 +38,8 @@ class Trainer(object):
         else:
             # np.save(self.save_path + 'experiment\\a0', a0)
             np.savez_compressed(
-                self.save_path + 'experiment\\parameter_' + str(self.cfg['pca_dim']) + '_' + str(
-                    self.cfg['d']) + '_fl', parameter=parameter)
+                self.save_path + 'experiment\\gradient_descent\\parameter_' + str(self.cfg['pca_dim']) + '_' + str(
+                    self.cfg['d']), parameter=parameter)
         print("save parameters. end.")
 
 
