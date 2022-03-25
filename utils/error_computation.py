@@ -68,7 +68,7 @@ def compute_error(t, a, k):
 
 
 if __name__ == '__main__':
-    parameter = np.load('E:\Face_Verification\experiment\\200_100\parameter_200_100_009.npz', allow_pickle=True)[
+    parameter = np.load('E:\Face_Verification\experiment\parameter_200_100_fl.npz', allow_pickle=True)[
         'parameter'].item()
     idx = np.where(parameter['min_cve_s'] == np.min(parameter['min_cve_s']))
     print("old error: ", np.min(parameter['min_cve_s']))

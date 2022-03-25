@@ -39,18 +39,19 @@ class Trainer(object):
             # np.save(self.save_path + 'experiment\\a0', a0)
             np.savez_compressed(
                 self.save_path + 'experiment\\parameter_' + str(self.cfg['pca_dim']) + '_' + str(
-                    self.cfg['d']) + '_' + str(self.cfg['rho'])[2:], parameter=parameter)
+                    self.cfg['d']) + '_fl', parameter=parameter)
         print("save parameters. end.")
 
 
 if __name__ == '__main__':
     config_path = 'config/train_config.yml'
-    if_remote = True
+    if_remote = False
     config = load_config(config_path, if_remote=if_remote)
     trainer = Trainer(config, if_remote)
     trainer.train()
 
-# czt  up 200 now_best    down 160 now_best
-# czt1 up 120 now_best    down 60 now_best
-# czt2 up 40 now_best    down 180 now_best
-# local 140 now_best
+# czt  up 200,400 now_best    down 240,400 now_best
+# czt1 up now_best    down now_best
+# czt2 up now_best    down 50,100 now_best*
+# czt3 up 30,50 now_best    down 25,50 now_best
+# local now_best

@@ -1,14 +1,14 @@
-data_path: "/home/chenzhentao/fgfv_data/LBP_r1_pca.npz"  # 服务器路径
-#data_path: 'E:\毕设\demo_code\data\LBP_r1_pca.npz'  # 本地路径
+#data_path: "/home/chenzhentao/fgfv_data/LBP_r1_pca.npz"  # 服务器路径
+data_path: 'E:\毕设\demo_code\data\LBP_r1_pca.npz'  # 本地路径
 #data_path: 'E:\FGFV_data\demo_code\data\LBP_r1_pca.npz'
 image_path: '/home/chenzhentao/Face_Verification/'
 if_regenerate: False  # 是否重新生成数据
-save_path: '/home/chenzhentao/Face_Verification/'  # 服务器
-#save_path: 'E:\Face_Verification\'  # 本地
+#save_path: '/home/chenzhentao/Face_Verification/'  # 服务器
+save_path: 'E:\Face_Verification\'  # 本地
 
-d: 60  # dimension of the data after applying CSML
+d: 100  # dimension of the data after applying CSML
 pca_dim: 200  # pca降维至几维
 ap: 'PCA'  # a0的选择 'WPCA' 'PCA' 'RP' 三种
 k: 10  # 验证数据集拆分成多少个子样本
 max_repeat: 1  # 寻找最佳矩阵A时最多循环多少次
-rho: 0.009  # 共轭梯度法中的步长  # 已测：1.0 0.6 0.5 0.1 0.05 0.01 0.009 0.0085 0.008 0.007 0.005 0.001 0.0005 0.0001  未测：
+rho: 0.009  # 共轭梯度法中的步长
