@@ -173,8 +173,8 @@ def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
     d0 = -g0
     # d0 = g0
     all_func.append(-obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
-    while True:
-    # while k < max_k:
+    # while True:
+    while k < max_k:
         g = grad_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
         item = k % n
         if item == 0:
@@ -194,23 +194,27 @@ def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
             break
         m = 0
         mk = 0
-        while m < 20:
+        while m < 40:
             if obj_func(a=a + rho ** m * d, pos=pos,
                         neg=neg, a0=a0, alpha=alpha, beta=beta) < obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha,
                                                                            beta=beta) + sigma * rho ** m * g.T @ d:
                 mk = m
                 break
             m += 1
+        distance = np.linalg.norm(((a + rho ** mk * d).reshape(a_shape) - a.reshape(a_shape)).diagonal())
+        print("distance: ", distance)
         a = a + rho ** mk * d
-        err, _ = compute_error(t=t.copy(), a=a.reshape(a_shape), k=10)
+        # if distance < epsilon:
+        #     break
+        # err, _ = compute_error(t=t.copy(), a=a.reshape(a_shape), k=10)
         func = obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
         all_func.append(-func)
-        if err < min_err:
-            min_err = err
-            min_k = k
-            best_a = a
-            min_func = func
-        print("err: ", err)
+        # if err < min_err:
+        #     min_err = err
+        #     min_k = k
+        #     best_a = a
+        #     min_func = func
+        # print("err: ", err)
         if k % 500 == 0:
             # print("rho: ", rho)
             print("a shape: ", a0.shape)
@@ -272,10 +276,10 @@ def cs_ml(pos, neg, t, d, ap, k, repeat, rho):
                 a_next = a1
                 beta_next = beta
                 theta_next = pri_theta
-            plt.figure(figsize=(12, 8), dpi=80)
-            plt.plot(range(len(all_func)), all_func)
-            plt.savefig('E:\Face_Verification\experiment\picture\\100_200_009.png')
-            plt.show()
+            # plt.figure(figsize=(12, 8), dpi=80)
+            # plt.plot(range(len(all_func)), all_func)
+            # plt.savefig('E:\\Face_Verification\\experiment\\gradient_descent\\picture\\100_200.png')
+            # plt.show()
         min_cve_s.append(min_cve)
         best_beta.append(beta_next)
         best_theta.append(theta_next)
@@ -293,6 +297,6 @@ if __name__ == '__main__':
     idx = np.where(parameter['min_cve_s'] == np.min(parameter['min_cve_s']))
     print("old error: ", np.min(parameter['min_cve_s']))
     a = parameter['a0_s'][idx[0][0]]
-    pos, neg, t = change_data('E:\毕设\demo_code\data\LBP_r1_pca.npz', a.shape[1])
+    pos, neg, t, _ = change_data('E:\毕设\demo_code\data\LBP_r1_pca.npz', a.shape[1])
     print("a shape: ", a.shape)
     print(obj_func(a, pos, neg, get_ap('PCA', a.shape[0], a.shape[1]), 1, 0.1))

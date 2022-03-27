@@ -78,8 +78,10 @@ if __name__ == '__main__':
     max_err = 0
     min_err = 91
     size = 100
+    batch = 91
     for i in range(size):
-        pos, neg, t = change_data('E:\毕设\demo_code\data\LBP_r1_pca.npz', a.shape[1])
+        pos, neg, t, _ = change_data('E:\毕设\demo_code\data\LBP_r1_pca.npz', a.shape[1])
+        batch = len(t) / 10
         e, theta = compute_error(t.copy(), a, 10)
         print("err: ", e)
         total_err = total_err + e
@@ -90,4 +92,4 @@ if __name__ == '__main__':
     print("avg err: ", total_err / size)
     print("max err: ", max_err)
     print("min err: ", min_err)
-    print("ave: ", 1 - (total_err / size) / 91, " min: ", 1 - max_err / 91, " max: ", 1 - min_err / 91)
+    print("ave: ", 1 - (total_err / size) / batch, " min: ", 1 - max_err / batch, " max: ", 1 - min_err / batch)

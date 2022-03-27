@@ -8,54 +8,44 @@ def change_data(path, dim):
     for j in range(data.shape[0]):
         a = data[j]
         data[j] = a / np.linalg.norm(a)
-    pos = []
-    neg = []
-    t = []
-    for i in range(data.shape[0] // 2):
-        if i % 2 == 0:
-            sample = [data[i][:dim], data[i + 1][:dim]]
-            val = [data[i][:dim], data[i + 1][:dim], 1]
-            pos.append(np.array(sample))
-            t.append(np.array(val))
-    for j in range(data.shape[0] // 2, data.shape[0]):
-        if j % 2 == 0:
-            sample = [data[j][:dim], data[j + 1][:dim]]
-            val = [data[j][:dim], data[j + 1][:dim], 0]
-            neg.append(np.array(sample))
-            t.append(np.array(val))
-    pos = np.array(pos)
-    neg = np.array(neg)
-    t = np.array(t)
-    arr = np.array(range(t.shape[0]))
+    all_pos = data[:data.shape[0] // 2, :]
+    all_neg = data[data.shape[0] // 2:, :]
+    arr = np.array(range(all_pos.shape[0]))
     np.random.shuffle(arr)
-    t = t[arr, :]
-    return pos, neg, t
-
-
-def change_data_1(path, dim):
-    pca = np.load(path, allow_pickle=True)['pca'].item()
-    data = pca['ux']
-    data = np.transpose(data)
+    all_pos = all_pos[arr, :]
+    arr_neg = np.array(range(all_neg.shape[0]))
+    np.random.shuffle(arr)
+    all_neg = all_neg[arr_neg, :]
     pos = []
     neg = []
     t = []
-    for i in range(data.shape[0] // 2):
+    test = []
+    for i in range(all_pos.shape[0]):
         if i % 2 == 0:
-            sample = [data[i][:dim], data[i + 1][:dim]]
-            val = [data[i][:dim], data[i + 1][:dim], 0]
-            neg.append(np.array(sample))
-            t.append(np.array(val))
-    for j in range(data.shape[0] // 2, data.shape[0]):
+            if i < int(all_pos.shape[0]*0.8):
+                sample = [all_pos[i][:dim], all_pos[i + 1][:dim]]
+                pos.append(np.array(sample))
+                val = [all_pos[i][:dim], all_pos[i + 1][:dim], 1]
+                t.append(np.array(val))
+            else:
+                val = [all_pos[i][:dim], all_pos[i + 1][:dim], 1]
+                test.append(np.array(val))
+    for j in range(all_neg.shape[0]):
         if j % 2 == 0:
-            sample = [data[j][:dim], data[j + 1][:dim]]
-            val = [data[j][:dim], data[j + 1][:dim], 1]
-            pos.append(np.array(sample))
-            t.append(np.array(val))
+            if j < int(all_neg.shape[0]*0.8):
+                sample = [all_neg[j][:dim], all_neg[j + 1][:dim]]
+                neg.append(np.array(sample))
+                val = [all_neg[j][:dim], all_neg[j + 1][:dim], 0]
+                t.append(np.array(val))
+            else:
+                val = [all_neg[j][:dim], all_neg[j + 1][:dim], 0]
+                test.append(np.array(val))
     pos = np.array(pos)
     neg = np.array(neg)
     t = np.array(t)
-    return pos, neg, t
+    test = np.array(test)
+    return pos, neg, t, test
 
 
 if __name__ == '__main__':
-    positive, negative, test = change_data("/home/chenzhentao/fgfv_data/LBP_r1_pca.npz", 400)
+    positive, negative, ts, tests = change_data("/home/chenzhentao/fgfv_data/LBP_r1_pca.npz", 400)
