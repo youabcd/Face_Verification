@@ -26,8 +26,8 @@ def bin_to_decimal(bin_array):
 def cal_basic_lpb(padding):
     lbp = np.zeros(256, )
     uni_lbp = np.zeros((len(uniform_lbp) + 1))
-    for i in range(1, 11):
-        for j in range(1, 11):
+    for i in range(1, 9):
+        for j in range(1, 9):
             bin_array = []
             if padding[i - 1][j - 1] >= padding[i][j]:
                 bin_array.append(1)
@@ -82,9 +82,9 @@ def get_hop_times(n):
 def local_bp(path: str):
     img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     uni_lbp = []
-    for i in range(0, img.shape[0], 10):
-        for j in range(0, img.shape[1], 10):
-            local_img = img[i:i + 10, j:j + 10]
+    for i in range(0, img.shape[0], 8):
+        for j in range(0, img.shape[1], 8):
+            local_img = img[i:i + 8, j:j + 8]
             padding = np.pad(local_img, ((1, 1), (1, 1)), 'constant', constant_values=(0, 0))
             uni_lbp.append(cal_basic_lpb(padding=padding))
     uni_lbp = np.array(uni_lbp).reshape(-1)

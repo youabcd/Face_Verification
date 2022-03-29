@@ -2,9 +2,10 @@ import numpy as np
 
 
 def change_data(path, dim):
-    pca = np.load(path, allow_pickle=True)['pca'].item()
-    data = pca['ux']
-    data = np.transpose(data)
+    # pca = np.load(path, allow_pickle=True)['pca'].item()
+    # data = pca['ux']
+    # data = np.transpose(data)
+    data = np.load(path, allow_pickle=True)['pca']
     for j in range(data.shape[0]):
         a = data[j]
         data[j] = a / np.linalg.norm(a)

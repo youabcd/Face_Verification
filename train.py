@@ -46,6 +46,7 @@ class Trainer(object):
 
 
 def test_result(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
+    print("a shape: ", ap.shape)
     total_acc = 0
     max_acc = 0
     min_acc = 1
@@ -60,15 +61,16 @@ def test_result(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
             max_acc = acc
         if acc < min_acc:
             min_acc = acc
+    print("a shape: ", ap.shape)
     print("avg acc: ", total_acc / repeat)
     print("min acc: ", min_acc)
     print("max acc: ", max_acc)
-    return total_acc, min_acc, max_acc,
+    return total_acc, min_acc, max_acc
 
 
 if __name__ == '__main__':
     config_path = 'config/train_config.yml'
-    if_remote = False
+    if_remote = True
     config = load_config(config_path, if_remote=if_remote)
     # trainer = Trainer(config, if_remote)
     # trainer.train()
@@ -76,8 +78,8 @@ if __name__ == '__main__':
                 ap=get_ap(config['ap'], config['d'], config['pca_dim']), k=config['k'], max_repeat=config['max_repeat'],
                 rho=config['rho'], repeat=10)
 
-# czt  up now_best    down now_best
+# czt  up 100,200 now_best    down now_best
 # czt1 up now_best    down now_best
 # czt2 up now_best    down now_best
-# czt3 up now_best    down now_best
+# czt3 up  now_best    down now_best
 # local now_best
