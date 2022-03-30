@@ -76,10 +76,10 @@ if __name__ == '__main__':
     # trainer.train()
     test_result(path=config['data_path'], pca_dim=config['pca_dim'], d=config['d'],
                 ap=get_ap(config['ap'], config['d'], config['pca_dim']), k=config['k'], max_repeat=config['max_repeat'],
-                rho=config['rho'], repeat=10)
+                rho=config['rho'], repeat=15)
 
-# czt  up 100,200 now_best    down now_best
+# czt  up now_best    down now_best
 # czt1 up now_best    down now_best
 # czt2 up now_best    down now_best
-# czt3 up  now_best    down now_best
+# czt3 up now_best    down now_best
 # local now_best
