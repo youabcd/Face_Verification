@@ -4,6 +4,7 @@ from utils.load_config import load_config
 from utils.get_ap import get_ap
 import numpy as np
 from inference import compute_acc
+import time
 
 
 class Trainer(object):
@@ -34,7 +35,7 @@ class Trainer(object):
         parameter['a0_s'] = a0_s
         if self.if_remote is True:
             # np.save(self.save_path + 'experiment/a0', a0)
-            np.savez_compressed(self.save_path + 'experiment/009/parameter_' + str(self.cfg['pca_dim']) + '_' + str(
+            np.savez_compressed(self.save_path + 'experiment/parameter_' + str(self.cfg['pca_dim']) + '_' + str(
                 self.cfg['d']), parameter=parameter)
         else:
             # np.save(self.save_path + 'experiment\\a0', a0)
@@ -54,8 +55,10 @@ def test_result(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
         pos, neg, t, test = change_data(path=path, dim=pca_dim)
         print(i)
         a0, min_cve, best_theta, best_beta = cs_ml(pos=pos, neg=neg, t=t, d=d, ap=ap, k=k, repeat=max_repeat, rho=rho)
-        err, acc = compute_acc(test_data=test, theta=best_theta[0], a=a0[0])
+        err, acc, same_acc, twin_acc = compute_acc(test_data=test, theta=best_theta[0], a=a0[0])
         print("acc: ", acc)
+        print("same acc: ", same_acc)
+        print("twin acc: ", twin_acc)
         total_acc = total_acc + acc
         if acc > max_acc:
             max_acc = acc
@@ -76,7 +79,7 @@ if __name__ == '__main__':
     # trainer.train()
     test_result(path=config['data_path'], pca_dim=config['pca_dim'], d=config['d'],
                 ap=get_ap(config['ap'], config['d'], config['pca_dim']), k=config['k'], max_repeat=config['max_repeat'],
-                rho=config['rho'], repeat=15)
+                rho=config['rho'], repeat=20)
 
 # czt  up now_best    down now_best
 # czt1 up now_best    down now_best

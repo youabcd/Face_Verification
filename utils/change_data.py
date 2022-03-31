@@ -2,10 +2,14 @@ import numpy as np
 
 
 def change_data(path, dim):
-    pca = np.load(path, allow_pickle=True)['pca'].item()
-    data = pca['ux']
-    data = np.transpose(data)
-    # data = np.load(path, allow_pickle=True)['pca']
+    if path[-7:-4] == 'pca':
+        pca = np.load(path, allow_pickle=True)['pca'].item()
+        data = pca['ux']
+        data = np.transpose(data)
+    elif path[-7:-4] == '500':
+        data = np.load(path, allow_pickle=True)['pca']
+    else:
+        data = np.random.random((100, 50))
     for j in range(data.shape[0]):
         a = data[j]
         data[j] = a / np.linalg.norm(a)
@@ -23,7 +27,7 @@ def change_data(path, dim):
     test = []
     for i in range(all_pos.shape[0]):
         if i % 2 == 0:
-            if i < int(all_pos.shape[0]*0.8):
+            if i < int(all_pos.shape[0] * 0.8):
                 sample = [all_pos[i][:dim], all_pos[i + 1][:dim]]
                 pos.append(np.array(sample))
                 val = [all_pos[i][:dim], all_pos[i + 1][:dim], 1]
@@ -33,7 +37,7 @@ def change_data(path, dim):
                 test.append(np.array(val))
     for j in range(all_neg.shape[0]):
         if j % 2 == 0:
-            if j < int(all_neg.shape[0]*0.8):
+            if j < int(all_neg.shape[0] * 0.8):
                 sample = [all_neg[j][:dim], all_neg[j + 1][:dim]]
                 neg.append(np.array(sample))
                 val = [all_neg[j][:dim], all_neg[j + 1][:dim], 0]

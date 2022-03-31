@@ -32,7 +32,7 @@ class PCA(object):
         p = c_df_sort[:self.n_components, 1:]
         features = c_df_sort[:self.n_components, 0]
         y = np.dot(p, np.transpose(self.x))
-        return np.transpose(y), features, sort  # 返回降维后的结果
+        return np.transpose(y), features, p  # 返回降维后的结果
 
 
 if __name__ == '__main__':
@@ -55,14 +55,12 @@ if __name__ == '__main__':
     # pca = PCA(x, n_components=2)
     # y = pca.reduce_dimension()
     # print(y)
-    data = np.load("/home/chenzhentao/fgfv_data/Intensity.npz", allow_pickle=True)['Intensity']
-    pca = PCA(data, n_components=500)
-    y, feature, sort = pca.reduce_dimension()
-    sort = sort[::-1]
-    sort = sort[:500]
+    inputs = np.load("/home/chenzhentao/fgfv_data/LBP.npz", allow_pickle=True)['LBP']
+    pca = PCA(inputs, n_components=500)
+    y, feature, wp = pca.reduce_dimension()
     data = {
         'feature_value': feature,
-        'feature_dim': sort
+        'feature_pca': wp
     }
-    np.savez_compressed("/home/chenzhentao/fgfv_data/Intensity_pca_500.npz", pca=y)
-    np.savez_compressed("/home/chenzhentao/fgfv_data/intensity_pca_feature_500.npz", feature=data)
+    # np.savez_compressed("/home/chenzhentao/fgfv_data/pca_500.npz", pca=y)
+    np.savez_compressed("/home/chenzhentao/fgfv_data/LBP_pca_feature_500.npz", feature=data)

@@ -123,7 +123,7 @@ def lower_fast(pos, neg, t, a0, alpha, beta, a_shape):
     at = a0
     all_func.append(-obj_func(a=at, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
     while True:
-    # while k < max_k:
+        # while k < max_k:
         g = grad_func(a=at.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
         a = at + (step * (-g)).reshape(a_shape)
         step = step * 0.95
@@ -159,7 +159,7 @@ def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
     all_func = []
     min_err = 91
     min_k = 0
-    max_k = 501
+    max_k = 250
     rho = rho
     # print("rho: ", rho)
     print("a shape: ", a0.shape)
@@ -171,7 +171,6 @@ def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
     n = len(a)
     g0 = grad_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
     d0 = -g0
-    # d0 = g0
     all_func.append(-obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
     # while True:
     while k < max_k:
@@ -179,22 +178,18 @@ def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
         item = k % n
         if item == 0:
             d = -g
-            # d = g
         else:
             theta = np.linalg.norm(g) / np.linalg.norm(g0)
             d = -g + theta * d0
-            # d = g + theta * d0
             gd = np.dot(g, d)
             if gd >= 0:
                 d = -g
-            # if gd >= 0:
-            #     d = g
         print(k, " g_norm", np.linalg.norm(g))
         if np.linalg.norm(g) < epsilon:
             break
         m = 0
         mk = 0
-        while m < 40:
+        while m < 20:
             if obj_func(a=a + rho ** m * d, pos=pos,
                         neg=neg, a0=a0, alpha=alpha, beta=beta) < obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha,
                                                                            beta=beta) + sigma * rho ** m * g.T @ d:
@@ -221,10 +216,9 @@ def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
             print("best err in 500: ", min_err)
             print("best err k: ", min_k)
             print("min_func: ", min_func)
-        if k - min_k > 1500:
-            break
         g0 = g
         d0 = d
+        rho = 0.95 * rho
         k += 1
     print("min_func: ", min_func, " k: ", min_k)
     print("min_err: ", min_err, " k: ", min_k)
@@ -263,7 +257,7 @@ def cs_ml(pos, neg, t, d, ap, k, repeat, rho):
             time_cg = time.time()
             a1, all_func = lower_fast(pos=pos, neg=neg, t=t, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
             # a1, all_func = cg_arm(pos=pos, neg=neg, t=t, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape, rho=rho)
-            # a1 = (optimize.fmin_cg(obj_func, a0.reshape(-1), fprime=grad_func,
+            # a1 = (optimize.fmin_cg(obj_func, a0.reshape(-1), fprime=grad_func, gtol=1e-6,
             #                        args=(pos, neg, a0, alpha, beta))).reshape(a0.shape)
             cve, pri_theta = compute_error(t=t.copy(), a=a1, k=k)
             # time_err = time.time()
@@ -278,7 +272,7 @@ def cs_ml(pos, neg, t, d, ap, k, repeat, rho):
                 theta_next = pri_theta
             # plt.figure(figsize=(12, 8), dpi=80)
             # plt.plot(range(len(all_func)), all_func)
-            # plt.savefig('E:\\Face_Verification\\experiment\\gradient_descent\\picture\\100_200.png')
+            # plt.savefig('E:\\Face_Verification\\experiment\\cg\\picture\\100_200.png')
             # plt.show()
         min_cve_s.append(min_cve)
         best_beta.append(beta_next)

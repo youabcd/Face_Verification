@@ -79,8 +79,11 @@ def get_hop_times(n):
 
 
 # uniform LBP
-def local_bp(path: str):
-    img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+def local_bp(path):
+    if isinstance(path, str):
+        img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+    else:
+        img = path
     uni_lbp = []
     for i in range(0, img.shape[0], 8):
         for j in range(0, img.shape[1], 8):
