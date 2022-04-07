@@ -255,10 +255,10 @@ def cs_ml(pos, neg, t, d, ap, k, repeat, rho):
         for beta in np.arange(0.1, 0.15, 0.1):
             print("beta: ", beta)
             time_cg = time.time()
-            a1, all_func = lower_fast(pos=pos, neg=neg, t=t, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
+            # a1, all_func = lower_fast(pos=pos, neg=neg, t=t, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
             # a1, all_func = cg_arm(pos=pos, neg=neg, t=t, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape, rho=rho)
-            # a1 = (optimize.fmin_cg(obj_func, a0.reshape(-1), fprime=grad_func, gtol=1e-6,
-            #                        args=(pos, neg, a0, alpha, beta))).reshape(a0.shape)
+            a1 = (optimize.fmin_cg(obj_func, a0.reshape(-1), fprime=grad_func, gtol=1e-6,
+                                   args=(pos, neg, a0, alpha, beta))).reshape(a0.shape)
             cve, pri_theta = compute_error(t=t.copy(), a=a1, k=k)
             # time_err = time.time()
             # print("compute error: ", time_err - time_cg_end)

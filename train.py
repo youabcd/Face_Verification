@@ -51,6 +51,8 @@ def test_result(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
     total_acc = 0
     max_acc = 0
     min_acc = 1
+    final_a = 0
+    final_theta = 1.
     for i in range(repeat):
         pos, neg, t, test = change_data(path=path, dim=pca_dim)
         print(i)
@@ -62,12 +64,19 @@ def test_result(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
         total_acc = total_acc + acc
         if acc > max_acc:
             max_acc = acc
+            final_a = a0
+            final_theta = best_theta
         if acc < min_acc:
             min_acc = acc
     print("a shape: ", ap.shape)
     print("avg acc: ", total_acc / repeat)
     print("min acc: ", min_acc)
     print("max acc: ", max_acc)
+    data = {
+        'a0_s': final_a,
+        'best_theta': final_theta
+    }
+    np.savez_compressed("/home/chenzhentao/Face_Verification/experiment/parameter_200_100.npz", parameter=data)
     return total_acc, min_acc, max_acc
 
 
@@ -75,11 +84,12 @@ if __name__ == '__main__':
     config_path = 'config/train_config.yml'
     if_remote = True
     config = load_config(config_path, if_remote=if_remote)
+    print("config: ", config)
     # trainer = Trainer(config, if_remote)
     # trainer.train()
     test_result(path=config['data_path'], pca_dim=config['pca_dim'], d=config['d'],
                 ap=get_ap(config['ap'], config['d'], config['pca_dim']), k=config['k'], max_repeat=config['max_repeat'],
-                rho=config['rho'], repeat=20)
+                rho=config['rho'], repeat=100)
 
 # czt  up now_best    down now_best
 # czt1 up now_best    down now_best

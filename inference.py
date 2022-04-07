@@ -5,14 +5,6 @@ import os
 from utils.error_computation import cosine_similarity
 
 
-# def cosine_similarity(x, y, a):
-#     ax = np.dot(a, x)
-#     ay = np.dot(a, y)
-#     ax_norm = np.linalg.norm(ax)
-#     ay_norm = np.linalg.norm(ay)
-#     return np.dot(ax, ay) / (ax_norm * ay_norm)
-
-
 def inference(img1, img2, parameter, feature):
     if isinstance(img1, str):
         img1 = local_bp(img1)
@@ -104,11 +96,11 @@ def main2():
     neg_err = 0
     for i in range(0, len(pos_path), 2):
         pos_acc += inference(pos_path[i], pos_path[i + 1],
-                             "/home/chenzhentao/Face_Verification/experiment/gradient_descent/parameter_200_100.npz",
+                             "/home/chenzhentao/Face_Verification/experiment/parameter_200_100.npz",
                              "/home/chenzhentao/fgfv_data/LBP_pca_feature_500.npz")
     for i in range(0, len(neg_path), 2):
         neg_err += inference(neg_path[i], neg_path[i + 1],
-                             "/home/chenzhentao/Face_Verification/experiment/gradient_descent/parameter_200_100.npz",
+                             "/home/chenzhentao/Face_Verification/experiment/parameter_200_100.npz",
                              "/home/chenzhentao/fgfv_data/LBP_pca_feature_500.npz")
     same_acc = pos_acc / (len(pos_path) // 2)
     twin_acc = (len(neg_path) // 2 - neg_err) / (len(neg_path) // 2)
