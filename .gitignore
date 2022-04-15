@@ -1,6 +1,7 @@
 face_data
 .idea
 zzz
+*.t7
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
