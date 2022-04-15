@@ -126,6 +126,6 @@ if __name__ == "__main__":
         preds = F.softmax(model(im), dim=1)
         # values, indices = preds.max(-1)
         # print(indices)
-        x_data.append(preds[0])
+        x_data.append(preds[0].detach().cpu().numpy())
     x_data = np.array(x_data)
     np.savez_compressed("/home/chenzhentao/fgfv_data/vgg_face.npz", vgg_face=x_data)
