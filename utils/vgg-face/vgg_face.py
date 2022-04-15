@@ -98,14 +98,15 @@ class VGG_16(nn.Module):
 def load_data(pos_path, neg_path):
     file_list1 = os.listdir(pos_path)
     file_list2 = os.listdir(neg_path)
+    file_list1.sort()
     file_list2.sort(key=lambda x: int(x[:-6]) * 10 + int(x[-5:-4]) if x.endswith('.jpg') else 0)
     path = []
     for i in range(len(file_list1)):
         if file_list1[i].endswith('.jpg'):
-            path.append(pos_path + '/' + file_list1[i])
+            path.append(pos_path + file_list1[i])
     for i in range(len(file_list2)):
         if file_list2[i].endswith('.jpg'):
-            path.append(neg_path + '/' + file_list2[i])
+            path.append(neg_path + file_list2[i])
     path = np.array(path)
     return path
 
@@ -116,6 +117,7 @@ if __name__ == "__main__":
     model.eval()
     img_path = load_data("/home/chenzhentao/fgfv_data/aligned/same/", "/home/chenzhentao/fgfv_data/aligned/twins/")
     x_data = []
+    print(img_path)
     for i in range(len(img_path)):
         if i % 100 == 0:
             print(i)

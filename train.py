@@ -49,37 +49,54 @@ class Trainer(object):
 
 def test_result(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
     print("a shape: ", ap.shape)
-    total_acc = 0
     max_acc = 0
     min_acc = 1
     final_a = 0
     final_theta = 1.
-    for i in range(repeat):
-        pos, neg, t, test = change_data(path=path, dim=pca_dim)
-        print(i)
-        a0, min_cve, best_theta, best_beta = cs_ml(pos=pos, neg=neg, t=t, d=d, ap=ap, k=k, repeat=max_repeat, rho=rho)
-        err, acc, same_acc, twin_acc = compute_acc(test_data=test, theta=best_theta[0], a=a0[0])
-        print("acc: ", acc)
-        print("same acc: ", same_acc)
-        print("twin acc: ", twin_acc)
-        print("theta: ", best_theta[0])
-        total_acc = total_acc + acc
-        if acc > max_acc:
-            max_acc = acc
-            final_a = a0
-            final_theta = best_theta
-        if acc < min_acc:
-            min_acc = acc
+    best_t1 = 0
+    best_t2 = 0
+    acc_res = {"t1": [], "t2": [], "acc": []}
+    for t1 in np.linspace(0.5, 0.95, 10):
+        for t2 in np.arange(-0.95, t1 + 0.01, 0.05):
+            if t2 > t1:
+                t2 = t1
+            total_acc = 0
+            for i in range(repeat):
+                pos, neg, t, test = change_data(path=path, dim=pca_dim)
+                print(i)
+                a0, min_cve, best_theta, best_beta = cs_ml(pos=pos, neg=neg, t=t, d=d, ap=ap, k=k, repeat=max_repeat,
+                                                           rho=rho, t1=t1, t2=t2)
+                err, acc, same_acc, twin_acc = compute_acc(test_data=test, theta=best_theta[0], a=a0[0])
+                print("acc: ", acc)
+                print("same acc: ", same_acc)
+                print("twin acc: ", twin_acc)
+                print("theta: ", best_theta[0])
+                total_acc = total_acc + acc
+                if acc > max_acc:
+                    max_acc = acc
+                    final_a = a0
+                    final_theta = best_theta
+                    best_t1 = t1
+                    best_t2 = t2
+                if acc < min_acc:
+                    min_acc = acc
+            avg_acc = total_acc / repeat
+            acc_res["t1"].append(t1)
+            acc_res["t2"].append(t2)
+            acc_res["acc"].append(avg_acc)
+            print("avg acc: ", avg_acc)
     print("a shape: ", ap.shape)
-    print("avg acc: ", total_acc / repeat)
     print("min acc: ", min_acc)
     print("max acc: ", max_acc)
+    print("best t1: ", best_t1)
+    print("best t2: ", best_t2)
     data = {
         'a0_s': final_a,
         'best_theta': final_theta
     }
     np.savez_compressed("/home/chenzhentao/Face_Verification/experiment/new_parameter_200_100.npz", parameter=data)
-    return total_acc, min_acc, max_acc
+    np.savez_compressed("/home/chenzhentao/Face_Verification/experiment/t1_t2_test.npz", test=acc_res)
+    return min_acc, max_acc
 
 
 if __name__ == '__main__':
@@ -91,7 +108,7 @@ if __name__ == '__main__':
     # trainer.train()
     test_result(path=config['data_path'], pca_dim=config['pca_dim'], d=config['d'],
                 ap=get_ap(config['ap'], config['d'], config['pca_dim']), k=config['k'], max_repeat=config['max_repeat'],
-                rho=config['rho'], repeat=25)
+                rho=config['rho'], repeat=15)
 
 # czt  up now_best    down now_best
 # czt1 up now_best    down now_best

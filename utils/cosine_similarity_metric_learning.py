@@ -151,7 +151,7 @@ def cg_arm(function, a0, a_shape, rho):
 
 
 # 余弦相似度度量学习
-def cs_ml(pos, neg, t, d, ap, k, repeat, rho):
+def cs_ml(pos, neg, t, d, ap, k, repeat, rho, t1, t2):
     """
     :param pos: 正样本 size 样本对数量*2*图像维数
     :param neg: 负样本
@@ -177,7 +177,7 @@ def cs_ml(pos, neg, t, d, ap, k, repeat, rho):
         for beta in np.arange(0.1, 0.15, 0.1):
             print("beta: ", beta)
             time_cg = time.time()
-            new_func = ObjFunc1(pos=pos, neg=neg, t1=0.9, t2=0.7, a0=a0)
+            new_func = ObjFunc1(pos=pos, neg=neg, t1=t1, t2=t2, a0=a0)
             # a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
             a1 = (optimize.fmin_cg(new_func.function, a0.reshape(-1), fprime=new_func.grad,
                                    gtol=1e-6)).reshape(a0.shape)

@@ -55,12 +55,12 @@ if __name__ == '__main__':
     # pca = PCA(x, n_components=2)
     # y = pca.reduce_dimension()
     # print(y)
-    inputs = np.load("/home/chenzhentao/fgfv_data/LBP.npz", allow_pickle=True)['LBP']
+    inputs = np.load("/home/chenzhentao/fgfv_data/Intensity.npz", allow_pickle=True)['Intensity']
     pca = PCA(inputs, n_components=500)
     y, feature, wp = pca.reduce_dimension()
     data = {
         'feature_value': feature,
         'feature_pca': wp
     }
-    # np.savez_compressed("/home/chenzhentao/fgfv_data/pca_500.npz", pca=y)
-    np.savez_compressed("/home/chenzhentao/fgfv_data/LBP_pca_feature_500.npz", feature=data)
+    np.savez_compressed("/home/chenzhentao/fgfv_data/Intensity_pca_500.npz", pca=y)
+    np.savez_compressed("/home/chenzhentao/fgfv_data/Intensity_pca_feature_500.npz", feature=data)
