@@ -5,156 +5,81 @@ import scipy.optimize as optimize
 from utils.change_data import change_data
 from utils.get_ap import get_ap
 import matplotlib.pyplot as plt
-
-
-# 余弦相似度
-def cosine_similarity(x, y, a):
-    # x = [1,2,3,3,2]
-    # y = [4,5,6,5,6]
-    # a = [[1,2,3,1,2],[4,5,6,4,5]] m = 500 and d = 200
-    ax = np.dot(a, x.T)
-    ay = np.dot(a, y.T)
-    ax_norm = np.linalg.norm(ax, axis=0)
-    ay_norm = np.linalg.norm(ay, axis=0)
-    return np.diagonal(np.dot(ax.T, ay)) / (ax_norm * ay_norm)
-
-
-# 余弦相似度梯度
-def grad_cs(x, y, a):
-    ax = np.dot(a, x)
-    ay = np.dot(a, y)
-    ax_norm = np.linalg.norm(ax)
-    ay_norm = np.linalg.norm(ay)
-    ua = np.dot(ax, ay)
-    # grad_u = np.dot(a, (2 * np.dot(x, y)))
-    grad_u = a @ (x[:, np.newaxis] * y + y[:, np.newaxis] * x)
-    va = ax_norm * ay_norm
-    grad_v = ((ay_norm / ax_norm) * ax[:, np.newaxis]) * x - ((ax_norm / ay_norm) * ay[:, np.newaxis]) * y
-    return grad_u / va - (ua / np.square(va)) * grad_v
-
-
-# def grad_cs_pal(x, y, a):
-#     ax = np.dot(a, x.T)
-#     ay = np.dot(a, y.T)
-#     ax_norm = np.linalg.norm(ax, axis=0)
-#     ay_norm = np.linalg.norm(ay, axis=0)
-#     ua = np.diagonal(np.dot(ax.T, ay))
-#     va = ax_norm * ay_norm
-#     a1 = a.reshape((1, a.shape[0], a.shape[1]))
-#     xy = np.diagonal(x @ y.T)
-#     grad_u_va = np.tile(a1, (x.shape[0], 1, 1)) * np.tile((2 * xy / va).reshape((-1, 1, 1)),
-#                                                           (1, a.shape[0], a.shape[1]))
-#     grad_v = np.tile((ay_norm / ax_norm).reshape((-1, 1, 1)), (1, a.shape[0], a.shape[1])) * np.einsum('ij, jk->jik',
-#                                                                                                        ax, x) - np.tile(
-#         (ax_norm / ay_norm).reshape((-1, 1, 1)), (1, a.shape[0], a.shape[1])) * np.einsum('ij, jk->jik', ay, y)
-#     return grad_u_va - np.tile((ua / np.square(va)).reshape((-1, 1, 1)), (1, a.shape[0], a.shape[1])) * grad_v
-
-
-def grad_cs_pal(x, y, a):
-    ax = np.einsum('ij, kj->ik', a, x)
-    ay = np.einsum('ij, kj->ik', a, y)
-    ax_norm = np.linalg.norm(ax, axis=0)
-    ay_norm = np.linalg.norm(ay, axis=0)
-    ua = np.einsum('ij,ij->j', ax, ay)
-    va = ax_norm * ay_norm
-    a1 = a.reshape((1, a.shape[0], a.shape[1]))
-    xy = np.einsum('ij,ij->i', x, y)
-    grad_u_va = a1 * (2 * xy / va).reshape([-1, 1, 1])
-    t1_time = time.time()
-    test1 = np.einsum('ij, jk->jik', ax, x)
-    test2 = ((ay_norm / ax_norm) * (ua / np.square(va))).reshape((-1, 1, 1))
-    test3 = test1 * test2
-    time1 = time.time()
-    print("test1: ", time1 - t1_time)
-    test4 = ((ay_norm / ax_norm) * (ua / np.square(va))).reshape((-1, 1, 1)) * np.einsum('ij, jk->jik', ax, x)
-    t2_time = time.time()
-    print("test2: ", t2_time - time1)
-    grad_v_ua = ((ay_norm / ax_norm) * (ua / np.square(va))).reshape((-1, 1, 1)) * np.einsum('ij, jk->jik', ax, x) - (
-            (ax_norm / ay_norm) * (ua / np.square(va))).reshape((-1, 1, 1)) * np.einsum('ij, jk->jik', ay, y)
-    time2 = time.time()
-    print("grad_v: ", time2 - time1)
-    return grad_u_va - grad_v_ua
-
-
-# 目标函数
-def obj_func(a, pos, neg, a0, alpha, beta):
-    a = a.reshape(a0.shape)
-    pos_sum = cosine_similarity(x=pos[:, 0, :], y=pos[:, 1, :], a=a)
-    neg_sum = cosine_similarity(x=neg[:, 0, :], y=neg[:, 1, :], a=a)
-    pos_sum = pos_sum.sum()
-    neg_sum = neg_sum.sum()
-    return -(pos_sum - (alpha * neg_sum) - (beta * np.square(np.linalg.norm(a - a0))))
-    # return -(pos_sum - (alpha * neg_sum))
-
-
-# 目标函数梯度
-def grad_func(a, pos, neg, a0, alpha, beta):
-    a = a.reshape(a0.shape)
-    pos_sum = np.zeros(a0.shape)
-    neg_sum = np.zeros(a0.shape)
-    for i in range(len(pos)):
-        # time1 = time.time()
-        pos_sum = pos_sum + grad_cs(x=pos[i][0], y=pos[i][1], a=a)
-        # print("one: ", time.time() - time1)
-    for i in range(len(neg)):
-        neg_sum = neg_sum + grad_cs(x=neg[i][0], y=neg[i][1], a=a)
-    return -((pos_sum - (alpha * neg_sum) - (2 * beta * (a - a0))).reshape(-1))
-    # return -((pos_sum - (alpha * neg_sum)).reshape(-1))
-
-
-# def grad_func(pos, neg, a, a0, alpha, beta):
-#     pos_all = grad_cs_pal(x=pos[:, 0, :], y=pos[:, 1, :], a=a)
-#     neg_all = grad_cs_pal(x=neg[:, 0, :], y=neg[:, 1, :], a=a)
-#     pos_sum = np.sum(pos_all, axis=0)
-#     neg_sum = np.sum(neg_all, axis=0)
-#     return pos_sum - (alpha * neg_sum) - (2 * beta * (a - a0))
+from utils.object_function import ObjFunc1, ObjFunc2
 
 
 # 最速下降法
-def lower_fast(pos, neg, t, a0, alpha, beta, a_shape):
+# def lower_fast(pos, neg, t, a0, alpha, beta, a_shape):
+    # min_func = 0
+    # all_func = []
+    # min_err = 91
+    # min_k = 0
+    # max_k = 1000
+    # k = 0
+    # step = 0.01
+    # epsilon = 1e-6
+    # at = a0
+    # all_func.append(obj_func(a=at, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
+    # while True:
+    #     # while k < max_k:
+    #     g = grad_func(a=at.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+    #     a = at + (step * (-g)).reshape(a_shape)
+    #     step = step * 0.95
+    #     print(k, " g_norm", np.linalg.norm(g))
+    #     # if np.linalg.norm(g) < epsilon:
+    #     #     break
+    #     func = obj_func(a=a.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+    #     all_func.append(func)
+    #     # if func < min_func:
+    #     #     min_func = func
+    #     #     min_k = k
+    #     # print("func: ", func)
+    #     distance = np.linalg.norm((a - at).diagonal())
+    #     print("distance: ", distance)
+    #     # err, _ = compute_error(t=t.copy(), a=a.reshape(a_shape), k=10)
+    #     # if err < min_err:
+    #     #     min_err = err
+    #     #     min_k = k
+    #     # print("err: ", err)
+    #     if distance < epsilon:
+    #         break
+    #     at = a
+    #     k += 1
+    # print("min_func: ", min_func, " k: ", min_k)
+    # # print("min_err: ", min_err, " k: ", min_k)
+    # return a, all_func
+
+
+# 最速下降法
+def lower_fast(function, a0, a_shape):
     min_func = 0
     all_func = []
-    min_err = 91
     min_k = 0
-    max_k = 1000
     k = 0
     step = 0.01
     epsilon = 1e-6
     at = a0
-    all_func.append(-obj_func(a=at, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
+    all_func.append(function.function(a=at))
     while True:
-        # while k < max_k:
-        g = grad_func(a=at.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+        g = function.grad(a=at.reshape(-1))
         a = at + (step * (-g)).reshape(a_shape)
         step = step * 0.95
         print(k, " g_norm", np.linalg.norm(g))
-        # if np.linalg.norm(g) < epsilon:
-        #     break
-        func = obj_func(a=a.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
-        all_func.append(-func)
-        # if func < min_func:
-        #     min_func = func
-        #     min_k = k
-        # print("func: ", func)
+        func = function.function(a=a.reshape(-1))
+        all_func.append(func)
         distance = np.linalg.norm((a - at).diagonal())
         print("distance: ", distance)
-        # err, _ = compute_error(t=t.copy(), a=a.reshape(a_shape), k=10)
-        # if err < min_err:
-        #     min_err = err
-        #     min_k = k
-        # print("err: ", err)
         if distance < epsilon:
             break
         at = a
         k += 1
     print("min_func: ", min_func, " k: ", min_k)
-    # print("min_err: ", min_err, " k: ", min_k)
     return a, all_func
 
 
 # 共轭梯度算法
 # 采用Armijo准测的共轭梯度算法 传入a0为2维数组:shape=[d,m]
-def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
+def cg_arm(function, a0, a_shape, rho):
     min_func = 0
     all_func = []
     min_err = 91
@@ -169,12 +94,12 @@ def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
     epsilon = 1e-6
     a = a0.reshape(-1)
     n = len(a)
-    g0 = grad_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+    g0 = function.grad(a=a)
     d0 = -g0
-    all_func.append(-obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
+    all_func.append(-function.function(a=a))
     # while True:
     while k < max_k:
-        g = grad_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+        g = function.grad(a=a)
         item = k % n
         if item == 0:
             d = -g
@@ -190,9 +115,7 @@ def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
         m = 0
         mk = 0
         while m < 20:
-            if obj_func(a=a + rho ** m * d, pos=pos,
-                        neg=neg, a0=a0, alpha=alpha, beta=beta) < obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha,
-                                                                           beta=beta) + sigma * rho ** m * g.T @ d:
+            if function.function(a=a + rho ** m * d) < function.function(a=a) + sigma * rho ** m * g.T @ d:
                 mk = m
                 break
             m += 1
@@ -202,7 +125,7 @@ def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
         # if distance < epsilon:
         #     break
         # err, _ = compute_error(t=t.copy(), a=a.reshape(a_shape), k=10)
-        func = obj_func(a=a, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+        func = function.function(a=a)
         all_func.append(-func)
         # if err < min_err:
         #     min_err = err
@@ -224,7 +147,6 @@ def cg_arm(pos, neg, t, a0, alpha, beta, a_shape, rho):
     print("min_err: ", min_err, " k: ", min_k)
     # print("rho: ", rho)
     print("a shape: ", a0.shape)
-    # return a.reshape(a_shape)
     return best_a.reshape(a_shape), all_func
 
 
@@ -255,13 +177,15 @@ def cs_ml(pos, neg, t, d, ap, k, repeat, rho):
         for beta in np.arange(0.1, 0.15, 0.1):
             print("beta: ", beta)
             time_cg = time.time()
-            # a1, all_func = lower_fast(pos=pos, neg=neg, t=t, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape)
-            # a1, all_func = cg_arm(pos=pos, neg=neg, t=t, a0=a0, alpha=alpha, beta=beta, a_shape=a0.shape, rho=rho)
-            a1 = (optimize.fmin_cg(obj_func, a0.reshape(-1), fprime=grad_func, gtol=1e-6,
-                                   args=(pos, neg, a0, alpha, beta))).reshape(a0.shape)
+            new_func = ObjFunc1(pos=pos, neg=neg, t1=0.9, t2=0.7, a0=a0)
+            # a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
+            a1 = (optimize.fmin_cg(new_func.function, a0.reshape(-1), fprime=new_func.grad,
+                                   gtol=1e-6)).reshape(a0.shape)
+            # new_func = ObjFunc2(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+            # a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
+            # a1 = (optimize.fmin_cg(new_func.function, a0.reshape(-1), fprime=new_func.grad,
+            #                        gtol=1e-6)).reshape(a0.shape)
             cve, pri_theta = compute_error(t=t.copy(), a=a1, k=k)
-            # time_err = time.time()
-            # print("compute error: ", time_err - time_cg_end)
             time_cg_end = time.time()
             print("finish a epoch: ", time_cg_end - time_cg)
             print("beta: ", beta, " cve: ", cve)
@@ -272,7 +196,7 @@ def cs_ml(pos, neg, t, d, ap, k, repeat, rho):
                 theta_next = pri_theta
             # plt.figure(figsize=(12, 8), dpi=80)
             # plt.plot(range(len(all_func)), all_func)
-            # plt.savefig('E:\\Face_Verification\\experiment\\cg\\picture\\100_200.png')
+            # plt.savefig("/home/chenzhentao/Face_Verification/experiment/100_200.png")
             # plt.show()
         min_cve_s.append(min_cve)
         best_beta.append(beta_next)
@@ -280,7 +204,7 @@ def cs_ml(pos, neg, t, d, ap, k, repeat, rho):
         best_a.append(a_next)
         a0 = a_next
         print("i: ", i, " min_cve_s: ", min_cve_s, " beta: ", best_beta)
-        if min_cve < 25:
+        if min_cve < 0:
             break
     return np.array(best_a), np.array(min_cve_s), np.array(best_theta), np.array(best_beta)
 
@@ -293,4 +217,3 @@ if __name__ == '__main__':
     a = parameter['a0_s'][idx[0][0]]
     pos, neg, t, _ = change_data('E:\毕设\demo_code\data\LBP_r1_pca.npz', a.shape[1])
     print("a shape: ", a.shape)
-    print(obj_func(a, pos, neg, get_ap('PCA', a.shape[0], a.shape[1]), 1, 0.1))
