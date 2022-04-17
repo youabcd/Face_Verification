@@ -1,8 +1,8 @@
 #data_path: "/home/chenzhentao/fgfv_data/LBP_r1_pca.npz"  # 服务器路径
-data_path: "/home/chenzhentao/fgfv_data/LBP_pca_500.npz"  # 服务器路径
+#data_path: "/home/chenzhentao/fgfv_data/LBP_pca_500.npz"  # 服务器路径
 #data_path: "/home/chenzhentao/fgfv_data/Intensity_pca_500.npz"  # 服务器路径
 #data_path: 'E:\毕设\demo_code\data\LBP_r1_pca.npz'  # 本地路径
-#data_path: 'E:\FGFV_data\demo_code\data\LBP_r1_pca.npz'  #本地路径
+data_path: 'E:\FGFV_data\demo_code\data\LBP_r1_pca.npz'  #本地路径
 image_path: '/home/chenzhentao/Face_Verification/'
 if_regenerate: False  # 是否重新生成数据
 save_path: '/home/chenzhentao/Face_Verification/'  # 服务器

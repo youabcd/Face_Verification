@@ -99,6 +99,46 @@ def test_result(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
     return min_acc, max_acc
 
 
+def test_result_1(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
+    print("a shape: ", ap.shape)
+    max_acc = 0
+    min_acc = 1
+    final_a = 0
+    final_theta = 1.
+    total_acc = 0
+    for i in range(repeat):
+        pos, neg, t, test = change_data(path=path, dim=pca_dim)
+        print(i)
+        a0, min_cve, best_theta, best_beta = cs_ml(pos=pos, neg=neg, t=t, d=d, ap=ap, k=k, repeat=max_repeat,
+                                                   rho=rho, t1=1, t2=0)
+        err, acc, same_acc, twin_acc = compute_acc(test_data=test, theta=best_theta[0], a=a0[0])
+        print("acc: ", acc)
+        print("same acc: ", same_acc)
+        print("twin acc: ", twin_acc)
+        print("theta: ", best_theta[0])
+        total_acc = total_acc + acc
+        if acc > max_acc:
+            max_acc = acc
+            final_a = a0
+            final_theta = best_theta
+        if acc < min_acc:
+            min_acc = acc
+    avg_acc = total_acc / repeat
+    print("avg acc: ", avg_acc)
+    print("a shape: ", ap.shape)
+    print("min acc: ", min_acc)
+    print("max acc: ", max_acc)
+    data = {
+        'a0_s': final_a,
+        'best_theta': final_theta
+    }
+    # np.savez_compressed("/home/chenzhentao/Face_Verification/experiment/new_parameter_200_100.npz", parameter=data)
+    np.savez_compressed(
+        "E:\\Face_Verification\\experiment\\new_func\\parameter_" + str(pca_dim) + "_" + str(d) + ".npz",
+        parameter=data)
+    return min_acc, max_acc
+
+
 if __name__ == '__main__':
     config_path = 'config/train_config.yml'
     if_remote = True
@@ -108,7 +148,7 @@ if __name__ == '__main__':
     # trainer.train()
     test_result(path=config['data_path'], pca_dim=config['pca_dim'], d=config['d'],
                 ap=get_ap(config['ap'], config['d'], config['pca_dim']), k=config['k'], max_repeat=config['max_repeat'],
-                rho=config['rho'], repeat=15)
+                rho=config['rho'], repeat=10)
 
 # czt  up now_best    down now_best
 # czt1 up now_best    down now_best

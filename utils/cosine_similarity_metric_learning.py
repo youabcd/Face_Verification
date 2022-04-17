@@ -177,14 +177,14 @@ def cs_ml(pos, neg, t, d, ap, k, repeat, rho, t1, t2):
         for beta in np.arange(0.1, 0.15, 0.1):
             print("beta: ", beta)
             time_cg = time.time()
-            new_func = ObjFunc1(pos=pos, neg=neg, t1=t1, t2=t2, a0=a0)
-            # a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
-            a1 = (optimize.fmin_cg(new_func.function, a0.reshape(-1), fprime=new_func.grad,
-                                   gtol=1e-6)).reshape(a0.shape)
-            # new_func = ObjFunc2(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+            # new_func = ObjFunc1(pos=pos, neg=neg, t1=t1, t2=t2, a0=a0)
             # a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
             # a1 = (optimize.fmin_cg(new_func.function, a0.reshape(-1), fprime=new_func.grad,
             #                        gtol=1e-6)).reshape(a0.shape)
+            new_func = ObjFunc2(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+            # a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
+            a1 = (optimize.fmin_cg(new_func.function, a0.reshape(-1), fprime=new_func.grad,
+                                   gtol=1e-6)).reshape(a0.shape)
             cve, pri_theta = compute_error(t=t.copy(), a=a1, k=k)
             time_cg_end = time.time()
             print("finish a epoch: ", time_cg_end - time_cg)
