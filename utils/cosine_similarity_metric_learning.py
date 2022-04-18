@@ -10,44 +10,44 @@ from utils.object_function import ObjFunc1, ObjFunc2
 
 # 最速下降法
 # def lower_fast(pos, neg, t, a0, alpha, beta, a_shape):
-    # min_func = 0
-    # all_func = []
-    # min_err = 91
-    # min_k = 0
-    # max_k = 1000
-    # k = 0
-    # step = 0.01
-    # epsilon = 1e-6
-    # at = a0
-    # all_func.append(obj_func(a=at, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
-    # while True:
-    #     # while k < max_k:
-    #     g = grad_func(a=at.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
-    #     a = at + (step * (-g)).reshape(a_shape)
-    #     step = step * 0.95
-    #     print(k, " g_norm", np.linalg.norm(g))
-    #     # if np.linalg.norm(g) < epsilon:
-    #     #     break
-    #     func = obj_func(a=a.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
-    #     all_func.append(func)
-    #     # if func < min_func:
-    #     #     min_func = func
-    #     #     min_k = k
-    #     # print("func: ", func)
-    #     distance = np.linalg.norm((a - at).diagonal())
-    #     print("distance: ", distance)
-    #     # err, _ = compute_error(t=t.copy(), a=a.reshape(a_shape), k=10)
-    #     # if err < min_err:
-    #     #     min_err = err
-    #     #     min_k = k
-    #     # print("err: ", err)
-    #     if distance < epsilon:
-    #         break
-    #     at = a
-    #     k += 1
-    # print("min_func: ", min_func, " k: ", min_k)
-    # # print("min_err: ", min_err, " k: ", min_k)
-    # return a, all_func
+# min_func = 0
+# all_func = []
+# min_err = 91
+# min_k = 0
+# max_k = 1000
+# k = 0
+# step = 0.01
+# epsilon = 1e-6
+# at = a0
+# all_func.append(obj_func(a=at, pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta))
+# while True:
+#     # while k < max_k:
+#     g = grad_func(a=at.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+#     a = at + (step * (-g)).reshape(a_shape)
+#     step = step * 0.95
+#     print(k, " g_norm", np.linalg.norm(g))
+#     # if np.linalg.norm(g) < epsilon:
+#     #     break
+#     func = obj_func(a=a.reshape(-1), pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+#     all_func.append(func)
+#     # if func < min_func:
+#     #     min_func = func
+#     #     min_k = k
+#     # print("func: ", func)
+#     distance = np.linalg.norm((a - at).diagonal())
+#     print("distance: ", distance)
+#     # err, _ = compute_error(t=t.copy(), a=a.reshape(a_shape), k=10)
+#     # if err < min_err:
+#     #     min_err = err
+#     #     min_k = k
+#     # print("err: ", err)
+#     if distance < epsilon:
+#         break
+#     at = a
+#     k += 1
+# print("min_func: ", min_func, " k: ", min_k)
+# # print("min_err: ", min_err, " k: ", min_k)
+# return a, all_func
 
 
 # 最速下降法
@@ -151,7 +151,7 @@ def cg_arm(function, a0, a_shape, rho):
 
 
 # 余弦相似度度量学习
-def cs_ml(pos, neg, t, d, ap, k, repeat, rho, t1, t2):
+def cs_ml(pos, neg, t, d, ap, k, repeat, rho, t1, t2, func_type):
     """
     :param pos: 正样本 size 样本对数量*2*图像维数
     :param neg: 负样本
@@ -177,14 +177,16 @@ def cs_ml(pos, neg, t, d, ap, k, repeat, rho, t1, t2):
         for beta in np.arange(0.1, 0.15, 0.1):
             print("beta: ", beta)
             time_cg = time.time()
-            # new_func = ObjFunc1(pos=pos, neg=neg, t1=t1, t2=t2, a0=a0)
-            # a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
-            # a1 = (optimize.fmin_cg(new_func.function, a0.reshape(-1), fprime=new_func.grad,
-            #                        gtol=1e-6)).reshape(a0.shape)
-            new_func = ObjFunc2(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
-            # a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
-            a1 = (optimize.fmin_cg(new_func.function, a0.reshape(-1), fprime=new_func.grad,
-                                   gtol=1e-6)).reshape(a0.shape)
+            if func_type == '1':
+                new_func = ObjFunc1(pos=pos, neg=neg, t1=t1, t2=t2, a0=a0)
+                # a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
+                a1 = (optimize.fmin_cg(new_func.function, a0.reshape(-1), fprime=new_func.grad,
+                                       gtol=1e-6)).reshape(a0.shape)
+            else:
+                new_func = ObjFunc2(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
+                # a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
+                a1 = (optimize.fmin_cg(new_func.function, a0.reshape(-1), fprime=new_func.grad,
+                                       gtol=1e-6)).reshape(a0.shape)
             cve, pri_theta = compute_error(t=t.copy(), a=a1, k=k)
             time_cg_end = time.time()
             print("finish a epoch: ", time_cg_end - time_cg)

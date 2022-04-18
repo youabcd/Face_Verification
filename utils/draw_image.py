@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def draw_img_1(x, y, img):
@@ -24,6 +25,22 @@ def draw_img_2(x1, y1, x2, y2, x3, y3, img, legend):
     plt.show()
 
 
+def draw_img_3(t1, t2, acc, img):
+    plt.figure(figsize=(12, 8), dpi=80)
+    plt.xlabel('t2', fontsize=20)
+    plt.ylabel('avg_acc', fontsize=20)
+    plt.tick_params(labelsize=15)
+    legend = []
+    for i in range(len(t1)):
+        x = t2[i]
+        y = acc[i]
+        legend.append("t1=" + str(t1[i]))
+        plt.plot(x, y)
+    plt.legend(legend)
+    plt.savefig("/home/chenzhentao/Face_Verification/experiment/images/" + img + ".jpg")
+    plt.show()
+
+
 if __name__ == '__main__':
     # img1
     # m = [50, 100, 200, 300, 400]
@@ -46,9 +63,31 @@ if __name__ == '__main__':
     # acc = [0.7161, 0.7121, 0.7077, 0.7247, 0.7055, 0.7234, 0.7179, 0.7162, 0.7187, 0.7095, 0.7037, 0.7077]
     # draw_img_1(x=beta, y=acc, img="beta")
     # img6
-    m = [50, 100, 200, 300, 400]
-    pca = [0.6964, 0.7124, 0.7247, 0.7173, 0.7124]
-    wpca = [0.5764, 0.5904, 0.5885, 0.5889, 0.5865]
-    rp = [0.5129, 0.5330, 0.5522, 0.5519, 0.5472]
-    label = ['PCA', 'WPCA', 'RP']
-    draw_img_2(m, pca, m, wpca, m, rp, 'a0', label)
+    # m = [50, 100, 200, 300, 400]
+    # pca = [0.6964, 0.7124, 0.7247, 0.7173, 0.7124]
+    # wpca = [0.5764, 0.5904, 0.5885, 0.5889, 0.5865]
+    # rp = [0.5129, 0.5330, 0.5522, 0.5519, 0.5472]
+    # label = ['PCA', 'WPCA', 'RP']
+    # draw_img_2(m, pca, m, wpca, m, rp, 'a0', label)
+    # img7
+    data = np.load("/home/chenzhentao/Face_Verification/experiment/t1_t2_test.npz", allow_pickle=True)['test'].item()
+    t1 = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
+    length = 0
+    t2 = [[] for i in range(len(t1))]
+    acc = [[] for i in range(len(t1))]
+    t1_data = data['t1']
+    t2_data = data['t2']
+    acc_data = data['acc']
+    for i in range(len(t1_data)):
+        if i == len(t1_data)-1:
+            t2[length].append(t2_data[i])
+            acc[length].append(acc_data[i])
+            break
+        if t1_data[i] != t1_data[i+1]:
+            t2[length].append(t2_data[i])
+            acc[length].append(acc_data[i])
+            length += 1
+        else:
+            t2[length].append(t2_data[i])
+            acc[length].append(acc_data[i])
+    draw_img_3(t1=t1, t2=t2, acc=acc, img='t1_t2')

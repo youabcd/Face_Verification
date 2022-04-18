@@ -65,7 +65,7 @@ def test_result(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
                 pos, neg, t, test = change_data(path=path, dim=pca_dim)
                 print(i)
                 a0, min_cve, best_theta, best_beta = cs_ml(pos=pos, neg=neg, t=t, d=d, ap=ap, k=k, repeat=max_repeat,
-                                                           rho=rho, t1=t1, t2=t2)
+                                                           rho=rho, t1=t1, t2=t2, func_type='1')
                 err, acc, same_acc, twin_acc = compute_acc(test_data=test, theta=best_theta[0], a=a0[0])
                 print("acc: ", acc)
                 print("same acc: ", same_acc)
@@ -99,7 +99,7 @@ def test_result(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
     return min_acc, max_acc
 
 
-def test_result_1(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
+def test_result_1(path, pca_dim, d, ap, k, max_repeat, rho, repeat, func_type):
     print("a shape: ", ap.shape)
     max_acc = 0
     min_acc = 1
@@ -110,7 +110,7 @@ def test_result_1(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
         pos, neg, t, test = change_data(path=path, dim=pca_dim)
         print(i)
         a0, min_cve, best_theta, best_beta = cs_ml(pos=pos, neg=neg, t=t, d=d, ap=ap, k=k, repeat=max_repeat,
-                                                   rho=rho, t1=1, t2=0)
+                                                   rho=rho, t1=0.85, t2=0.05, func_type=func_type)
         err, acc, same_acc, twin_acc = compute_acc(test_data=test, theta=best_theta[0], a=a0[0])
         print("acc: ", acc)
         print("same acc: ", same_acc)
@@ -124,8 +124,8 @@ def test_result_1(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
         if acc < min_acc:
             min_acc = acc
     avg_acc = total_acc / repeat
-    print("avg acc: ", avg_acc)
     print("a shape: ", ap.shape)
+    print("avg acc: ", avg_acc)
     print("min acc: ", min_acc)
     print("max acc: ", max_acc)
     data = {
@@ -133,10 +133,7 @@ def test_result_1(path, pca_dim, d, ap, k, max_repeat, rho, repeat):
         'best_theta': final_theta
     }
     # np.savez_compressed("/home/chenzhentao/Face_Verification/experiment/new_parameter_200_100.npz", parameter=data)
-    np.savez_compressed(
-        "E:\\Face_Verification\\experiment\\new_func\\parameter_" + str(pca_dim) + "_" + str(d) + ".npz",
-        parameter=data)
-    return min_acc, max_acc
+    return avg_acc, min_acc, max_acc
 
 
 if __name__ == '__main__':
@@ -146,9 +143,24 @@ if __name__ == '__main__':
     print("config: ", config)
     # trainer = Trainer(config, if_remote)
     # trainer.train()
-    test_result(path=config['data_path'], pca_dim=config['pca_dim'], d=config['d'],
-                ap=get_ap(config['ap'], config['d'], config['pca_dim']), k=config['k'], max_repeat=config['max_repeat'],
-                rho=config['rho'], repeat=10)
+    test_result_1(path=config['data_path'], pca_dim=config['pca_dim'], d=config['d'],
+                  ap=get_ap(config['ap'], config['d'], config['pca_dim']), k=config['k'],
+                  max_repeat=config['max_repeat'], rho=config['rho'], repeat=15, func_type=config['func_type'])
+    # a_shape = [[160, 400], [120, 300], [120, 200], [50, 100], [25, 50]]
+    # ap = ['WPCA', 'RP']
+    # feature = ["/home/chenzhentao/fgfv_data/Intensity_pca_500.npz", "/home/chenzhentao/fgfv_data/vgg_pca_500.npz",
+    #            "/home/chenzhentao/fgfv_data/HOG_pca.npz"]
+    # all_acc = dict()
+    # for shape in a_shape:
+    #     all_acc[str(shape[1])] = []
+    #     for fea in feature:
+    #         res, _, _ = test_result_1(path=fea, pca_dim=shape[1], d=shape[0],
+    #                                   ap=get_ap(config['ap'], shape[0], shape[1]), k=config['k'],
+    #                                   max_repeat=config['max_repeat'], rho=config['rho'], repeat=15,
+    #                                   func_type=config['func_type'])
+    #         all_acc[str(shape[1])].append(res)
+    # print(all_acc)
+
 
 # czt  up now_best    down now_best
 # czt1 up now_best    down now_best
