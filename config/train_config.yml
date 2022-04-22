@@ -1,8 +1,8 @@
-#data_path: "/home/chenzhentao/fgfv_data/LBP_r1_pca.npz"  # LBP服务器路径
+#data_path: "/home/chenzhentao/fgfv_data/LBP_r1_pca.npz"  # LBP服务器路径(原)
 data_path: "/home/chenzhentao/fgfv_data/LBP_pca_500.npz"  # LBP服务器路径
 #data_path: "/home/chenzhentao/fgfv_data/Intensity_pca_500.npz"  # Intensity服务器路径
 #data_path: "/home/chenzhentao/fgfv_data/vgg_pca_500.npz"  # VGG服务器路径
-#data_path: "/home/chenzhentao/fgfv_data/HOG_pca.npz"  # HOG服务器路径
+#data_path: "/home/chenzhentao/fgfv_data/HOG_pca.npz"  # HOG服务器路径(原)
 #data_path: 'E:\毕设\demo_code\data\LBP_r1_pca.npz'  # 本地路径
 #data_path: 'E:\FGFV_data\demo_code\data\LBP_r1_pca.npz'  #本地路径
 image_path: '/home/chenzhentao/Face_Verification/'
@@ -10,10 +10,10 @@ if_regenerate: False  # 是否重新生成数据
 save_path: '/home/chenzhentao/Face_Verification/'  # 服务器
 #save_path: 'E:\Face_Verification\'  # 本地
 
-d: 270  # dimension of the data after applying CSML
-pca_dim: 300  # pca降维至几维
+d: 100  # dimension of the data after applying CSML
+pca_dim: 200  # pca降维至几维
 ap: 'PCA'  # a0的选择 'WPCA' 'PCA' 'RP'
 k: 10  # 验证数据集拆分成多少个子样本
 max_repeat: 1  # 寻找最佳矩阵A时最多循环多少次
 rho: 0.01  # 共轭梯度法中的步长
-func_type: '1'  # 目标函数类别
+func_type: '3'  # 目标函数类别

@@ -5,7 +5,7 @@ import scipy.optimize as optimize
 from utils.change_data import change_data
 from utils.get_ap import get_ap
 import matplotlib.pyplot as plt
-from utils.object_function import ObjFunc1, ObjFunc2
+from utils.object_function import ObjFunc1, ObjFunc2, ObjFunc3, ObjFunc4
 
 
 # 最速下降法
@@ -64,11 +64,11 @@ def lower_fast(function, a0, a_shape):
         g = function.grad(a=at.reshape(-1))
         a = at + (step * (-g)).reshape(a_shape)
         step = step * 0.95
-        print(k, " g_norm", np.linalg.norm(g))
+        # print(k, " g_norm", np.linalg.norm(g))
         func = function.function(a=a.reshape(-1))
         all_func.append(func)
         distance = np.linalg.norm((a - at).diagonal())
-        print("distance: ", distance)
+        # print("distance: ", distance)
         if distance < epsilon:
             break
         at = a
@@ -182,11 +182,17 @@ def cs_ml(pos, neg, t, d, ap, k, repeat, rho, t1, t2, func_type):
                 # a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
                 a1 = (optimize.fmin_cg(new_func.function, a0.reshape(-1), fprime=new_func.grad,
                                        gtol=1e-6)).reshape(a0.shape)
-            else:
+            elif func_type == '2':
                 new_func = ObjFunc2(pos=pos, neg=neg, a0=a0, alpha=alpha, beta=beta)
                 # a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
                 a1 = (optimize.fmin_cg(new_func.function, a0.reshape(-1), fprime=new_func.grad,
                                        gtol=1e-6)).reshape(a0.shape)
+            elif func_type == '3':
+                new_func = ObjFunc3(pos=pos, neg=neg, a0=a0, alpha=alpha)
+                a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
+            else:
+                new_func = ObjFunc4(a0=a0)
+                a1, all_func = lower_fast(new_func, a0=a0, a_shape=a0.shape)
             cve, pri_theta = compute_error(t=t.copy(), a=a1, k=k)
             time_cg_end = time.time()
             print("finish a epoch: ", time_cg_end - time_cg)

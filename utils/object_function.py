@@ -90,6 +90,45 @@ class ObjFunc2(object):
         return -((pos_sum - (self.alpha * neg_sum) - (2 * self.beta * (a - self.a0))).reshape(-1))
 
 
+class ObjFunc3(object):
+    def __init__(self, pos, neg, a0, alpha):
+        self.pos = pos
+        self.neg = neg
+        self.a0 = a0
+        self.alpha = alpha
+
+    def function(self, a):
+        a = a.reshape(self.a0.shape)
+        pos_sum = cosine_similarity(x=self.pos[:, 0, :], y=self.pos[:, 1, :], a=a)
+        neg_sum = cosine_similarity(x=self.neg[:, 0, :], y=self.neg[:, 1, :], a=a)
+        pos_sum = pos_sum.sum()
+        neg_sum = neg_sum.sum()
+        return -(pos_sum - (self.alpha * neg_sum))
+
+    def grad(self, a):
+        a = a.reshape(self.a0.shape)
+        pos_sum = np.zeros(self.a0.shape)
+        neg_sum = np.zeros(self.a0.shape)
+        for i in range(len(self.pos)):
+            pos_sum = pos_sum + grad_cs(x=self.pos[i][0], y=self.pos[i][1], a=a)
+        for i in range(len(self.neg)):
+            neg_sum = neg_sum + grad_cs(x=self.neg[i][0], y=self.neg[i][1], a=a)
+        return -((pos_sum - (self.alpha * neg_sum)).reshape(-1))
+
+
+class ObjFunc4(object):
+    def __init__(self, a0):
+        self.a0 = a0
+
+    def function(self, a):
+        a = a.reshape(self.a0.shape)
+        return np.square(np.linalg.norm(a - self.a0))
+
+    def grad(self, a):
+        a = a.reshape(self.a0.shape)
+        return (2 * (a - self.a0)).reshape(-1)
+
+
 def grad_cs_pal(x, y, a):
     ax = np.einsum('ij, kj->ik', a, x)
     ay = np.einsum('ij, kj->ik', a, y)
