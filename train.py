@@ -150,7 +150,7 @@ if __name__ == '__main__':
     #             max_repeat=config['max_repeat'], rho=config['rho'], repeat=20)
     test_result_1(path=config['data_path'], pca_dim=config['pca_dim'], d=config['d'],
                   ap=get_ap(config['ap'], config['d'], config['pca_dim']), k=config['k'],
-                  max_repeat=config['max_repeat'], rho=config['rho'], repeat=25, func_type=config['func_type'])
+                  max_repeat=config['max_repeat'], rho=config['rho'], repeat=20, func_type=config['func_type'])
     # a_shape = [[240, 400], [120, 300], [180, 200], [60, 100], [45, 50]]
     # a_shape = [[160, 400], [120, 300], [100, 200], [50, 100], [25, 50]]
     # ap = ['WPCA', 'RP']
