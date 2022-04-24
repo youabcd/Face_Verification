@@ -69,25 +69,25 @@ class VGG_16(nn.Module):
         Returns: class logits
 
         """
-        x = F.relu(self.conv_1_1(x))
+        x = F.relu(self.conv_1_1(x))  # 224
         x = F.relu(self.conv_1_2(x))
         x = F.max_pool2d(x, 2, 2)
-        x = F.relu(self.conv_2_1(x))
+        x = F.relu(self.conv_2_1(x))  # 112
         x = F.relu(self.conv_2_2(x))
         x = F.max_pool2d(x, 2, 2)
-        x = F.relu(self.conv_3_1(x))
+        x = F.relu(self.conv_3_1(x))  # 56
         x = F.relu(self.conv_3_2(x))
         x = F.relu(self.conv_3_3(x))
         x = F.max_pool2d(x, 2, 2)
-        x = F.relu(self.conv_4_1(x))
+        x = F.relu(self.conv_4_1(x))  # 28
         x = F.relu(self.conv_4_2(x))
         x = F.relu(self.conv_4_3(x))
         x = F.max_pool2d(x, 2, 2)
-        x = F.relu(self.conv_5_1(x))
+        x = F.relu(self.conv_5_1(x))  # 14
         x = F.relu(self.conv_5_2(x))
         x = F.relu(self.conv_5_3(x))
         x = F.max_pool2d(x, 2, 2)
-        x = x.view(x.size(0), -1)
+        x = x.view(x.size(0), -1)  # 7
         x = F.relu(self.fc6(x))
         x = F.dropout(x, 0.5, self.training)
         x = F.relu(self.fc7(x))
