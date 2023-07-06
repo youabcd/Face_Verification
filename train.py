@@ -166,9 +166,3 @@ if __name__ == '__main__':
     #                                   func_type=config['func_type'])
     #         all_acc[str(shape[1])].append(res)
     # print(all_acc)
-
-# czt  up now_best    down now_best
-# czt1 up now_best    down now_best
-# czt2 up now_best    down now_best
-# czt3 up now_best    down now_best
-# local now_best
